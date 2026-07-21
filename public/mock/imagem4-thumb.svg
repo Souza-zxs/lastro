@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <rect width="640" height="480" fill="#101418"/>
+  <g stroke="#e8e3d8" stroke-width="2" fill="none" opacity="0.85">
+    <rect x="120" y="90" width="400" height="300" rx="8"/>
+    <line x1="120" y1="190" x2="520" y2="190"/>
+    <line x1="253" y1="90" x2="253" y2="390"/>
+    <line x1="386" y1="90" x2="386" y2="390"/>
+    <circle cx="186" cy="140" r="22"/>
+    <path d="M300 340 l40 -60 40 60 z"/>
+  </g>
+  <text x="24" y="44" font-family="monospace" font-size="18" fill="#e8e3d8" opacity="0.5">IDENTIDADE VISUAL — GRID</text>
+</svg>

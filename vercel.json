@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/jobs/monitorar",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}
