@@ -3,6 +3,7 @@ export interface Pacote {
   nome: string;
   creditos: number;
   preco: string;
+  precoCentavos: number;
   porImagem: string;
   destaque: boolean;
   beneficios: string[];
@@ -14,6 +15,7 @@ export const PACOTES: Pacote[] = [
     nome: "Avulso",
     creditos: 5,
     preco: "R$ 39",
+    precoCentavos: 3900,
     porImagem: "R$ 7,80 por imagem",
     destaque: false,
     beneficios: [
@@ -28,6 +30,7 @@ export const PACOTES: Pacote[] = [
     nome: "Estúdio",
     creditos: 20,
     preco: "R$ 129",
+    precoCentavos: 12900,
     porImagem: "R$ 6,45 por imagem",
     destaque: true,
     beneficios: [
@@ -43,6 +46,7 @@ export const PACOTES: Pacote[] = [
     nome: "Portfólio",
     creditos: 50,
     preco: "R$ 279",
+    precoCentavos: 27900,
     porImagem: "R$ 5,58 por imagem",
     destaque: false,
     beneficios: [

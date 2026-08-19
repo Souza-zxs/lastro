@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lastro (Revollution Ideias)
 
-## Getting Started
+Prova de anterioridade para imagens: o usuário envia um arquivo, geramos o
+hash (SHA-256) e o carimbo de tempo do envio, e emitimos um certificado em
+PDF com QR code de verificação pública — evidência de que a obra já existia,
+com aquele autor, numa data específica.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- [Next.js 16](https://nextjs.org) (App Router, Turbopack) + React 19 + TypeScript
+- [Supabase](https://supabase.com) — Postgres, Auth e Storage (com RLS)
+- Tailwind CSS 4 + shadcn/ui
+- [Asaas](https://www.asaas.com) — cobranças do checkout de créditos, via webhook
+- Google Cloud Vision (Web Detection) — monitoramento de uso indevido das imagens registradas
+- [Resend](https://resend.com) — e-mail de resumo do monitoramento
+- Deploy e cron jobs na [Vercel](https://vercel.com)
+
+## Estrutura
+
+```
+app/
+  (marketing)/    página inicial, preços, verificação pública de certificado
+  (auth)/         login e cadastro
+  (dashboard)/    área logada: registros, alertas de uso indevido
+  certificado/    página pública do certificado (via QR code)
+  api/
+    checkout/     cria cobrança Asaas para compra de pacote de créditos
+    webhooks/     recebe confirmação de pagamento do Asaas
+    jobs/         monitorar — job agendado (Vercel Cron) que varre a web
+                   atrás de cópias das imagens registradas
+    registros/    CRUD de registros de imagem
+lib/
+  actions/        server actions
+  supabase/       clientes Supabase (browser/server)
+  monitoramento/  lógica do job de monitoramento de uso indevido
+  asaas.ts        cliente da API do Asaas
+  hash.ts         hash SHA-256 dos arquivos enviados
+  phash.ts        perceptual hash, usado para achar cópias/variações
+supabase/
+  migrations/     schema e políticas de RLS do banco
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Rodando localmente
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Pré-requisitos: Node 20+, uma conta Supabase (ou `supabase start` local).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+cp .env.example .env.local   # preencha as variáveis, ver abaixo
+npm run dev
+```
 
-## Learn More
+Abra [http://localhost:3000](http://localhost:3000).
 
-To learn more about Next.js, take a look at the following resources:
+## Variáveis de ambiente
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Todas as variáveis, com instruções de onde obter cada uma, estão comentadas
+em [`.env.example`](./.env.example). Resumo:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Variável | Obrigatória | Para quê |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` | sim | Banco, auth e storage |
+| `NEXT_PUBLIC_SITE_URL` | sim | Monta a URL de verificação no QR code do certificado |
+| `CRON_SECRET` | sim | Autoriza a chamada do Vercel Cron a `/api/jobs/monitorar` |
+| `GOOGLE_VISION_API_KEY` | sim | Busca de cópias das imagens (monitoramento de uso indevido) |
+| `RESEND_API_KEY` / `RESEND_FROM_EMAIL` | não | E-mail de resumo do monitoramento (sem elas, o job só não envia e-mail) |
+| `ASAAS_API_KEY` / `ASAAS_ENV` / `ASAAS_WEBHOOK_TOKEN` | sim | Checkout de créditos e confirmação de pagamento via webhook |
 
-## Deploy on Vercel
+## Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+O projeto está hospedado na Vercel (`daniel-4710s-projects/lastro`), com o
+job de monitoramento agendado via `vercel.json` (`crons`). Deploy de produção:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npx vercel --prod
+```
+
+Configure as mesmas variáveis de ambiente da tabela acima no painel da
+Vercel (Project Settings > Environment Variables) antes do primeiro deploy.
+
+## Banco de dados
+
+O schema e as políticas de RLS vivem em `supabase/migrations/`. Para aplicar:
+
+```bash
+supabase db push
+```
