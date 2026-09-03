@@ -12,6 +12,8 @@ com aquele autor, numa data específica.
 - Tailwind CSS 4 + shadcn/ui
 - [Asaas](https://www.asaas.com) — cobranças do checkout de créditos, via webhook
 - Google Cloud Vision (Web Detection) — monitoramento de uso indevido das imagens registradas
+- Acompanhamento de processos do INPI (marca, patente, desenho industrial) — consulta direto na
+  base pública do INPI, sem API paga
 - [Resend](https://resend.com) — e-mail de resumo do monitoramento
 - Deploy e cron jobs na [Vercel](https://vercel.com)
 
@@ -21,18 +23,23 @@ com aquele autor, numa data específica.
 app/
   (marketing)/    página inicial, preços, verificação pública de certificado
   (auth)/         login e cadastro
-  (dashboard)/    área logada: registros, alertas de uso indevido
+  (dashboard)/    área logada: registros, alertas de uso indevido,
+                   processos do INPI acompanhados
   certificado/    página pública do certificado (via QR code)
   api/
     checkout/     cria cobrança Asaas para compra de pacote de créditos
     webhooks/     recebe confirmação de pagamento do Asaas
     jobs/         monitorar — job agendado (Vercel Cron) que varre a web
-                   atrás de cópias das imagens registradas
+                   atrás de cópias das imagens registradas;
+                   verificar-inpi — job agendado que consulta a situação
+                   dos processos do INPI acompanhados
     registros/    CRUD de registros de imagem
 lib/
   actions/        server actions
   supabase/       clientes Supabase (browser/server)
   monitoramento/  lógica do job de monitoramento de uso indevido
+  inpi/           cliente da consulta pública do INPI (pePI), usado pelo
+                   job verificar-inpi
   asaas.ts        cliente da API do Asaas
   hash.ts         hash SHA-256 dos arquivos enviados
   phash.ts        perceptual hash, usado para achar cópias/variações

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Plus, LayoutGrid, ShieldAlert, LogOut, User } from "lucide-react";
+import { Plus, LayoutGrid, ShieldAlert, Landmark, LogOut, User } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -31,6 +31,7 @@ export function DashboardNav({ usuario }: { usuario: Usuario }) {
   const pathname = usePathname();
   const isDashboardHome = pathname === "/dashboard";
   const isAlertas = pathname === "/dashboard/alertas";
+  const isInpi = pathname?.startsWith("/dashboard/inpi") ?? false;
 
   return (
     <header className="border-b border-line/80 bg-paper-certificate">
@@ -61,6 +62,18 @@ export function DashboardNav({ usuario }: { usuario: Usuario }) {
             >
               <ShieldAlert className="size-3.5" />
               Alertas
+            </Link>
+            <Link
+              href="/dashboard/inpi"
+              className={cn(
+                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors",
+                isInpi
+                  ? "bg-secondary text-ledger"
+                  : "text-ink-muted hover:text-ink"
+              )}
+            >
+              <Landmark className="size-3.5" />
+              INPI
             </Link>
           </nav>
         </div>

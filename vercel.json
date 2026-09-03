@@ -3,6 +3,10 @@
     {
       "path": "/api/jobs/monitorar",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/jobs/verificar-inpi",
+      "schedule": "0 5 * * 3"
     }
   ]
 }
