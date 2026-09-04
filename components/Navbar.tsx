@@ -7,7 +7,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuLinkItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -37,12 +37,12 @@ export function Navbar() {
             />
             <DropdownMenuContent align="start" className="w-56">
               {links.map((link) => (
-                <DropdownMenuItem key={link.href} render={<Link href={link.href} />}>
+                <DropdownMenuLinkItem key={link.href} render={<Link href={link.href} />}>
                   {link.label}
-                </DropdownMenuItem>
+                </DropdownMenuLinkItem>
               ))}
               <DropdownMenuSeparator />
-              <DropdownMenuItem render={<Link href="/login" />}>Entrar</DropdownMenuItem>
+              <DropdownMenuLinkItem render={<Link href="/login" />}>Entrar</DropdownMenuLinkItem>
             </DropdownMenuContent>
           </DropdownMenu>
 

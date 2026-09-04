@@ -11,6 +11,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuLinkItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -60,10 +61,10 @@ export function DashboardNav({ usuario }: { usuario: Usuario }) {
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               {itensNav.map((item) => (
-                <DropdownMenuItem key={item.href} render={<Link href={item.href} />}>
+                <DropdownMenuLinkItem key={item.href} render={<Link href={item.href} />}>
                   <item.icon className="size-4" />
                   {item.label}
-                </DropdownMenuItem>
+                </DropdownMenuLinkItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -120,16 +121,16 @@ export function DashboardNav({ usuario }: { usuario: Usuario }) {
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem render={<Link href="/dashboard" />}>
+              <DropdownMenuLinkItem render={<Link href="/dashboard" />}>
                 <User className="size-4" />
                 Meu painel
-              </DropdownMenuItem>
-              <DropdownMenuItem render={<Link href="/dashboard/perfil" />}>
+              </DropdownMenuLinkItem>
+              <DropdownMenuLinkItem render={<Link href="/dashboard/perfil" />}>
                 Perfil
-              </DropdownMenuItem>
-              <DropdownMenuItem render={<Link href="/precos" />}>
+              </DropdownMenuLinkItem>
+              <DropdownMenuLinkItem render={<Link href="/precos" />}>
                 Gerenciar plano
-              </DropdownMenuItem>
+              </DropdownMenuLinkItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => logout()}>
                 <LogOut className="size-4" />
