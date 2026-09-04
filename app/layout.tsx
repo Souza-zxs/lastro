@@ -23,12 +23,12 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Revollution Ideias — Registro de autoria de imagens",
+  title: "Revollution Lastro — Registro de autoria de imagens",
   description:
     "Carimbo de tempo e certificado de anterioridade para fotógrafos, ilustradores e designers.",
   appleWebApp: {
     capable: true,
-    title: "Lastro",
+    title: "Revollution Lastro",
     statusBarStyle: "default",
   },
   icons: {

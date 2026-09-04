@@ -13,14 +13,14 @@ export function Logo({ className }: { className?: string }) {
     >
       <Image
         src="/revollution-mark.png"
-        alt="Revollution Ideias"
+        alt="Revollution Lastro"
         width={28}
         height={28}
         className="shrink-0 rounded-full"
         unoptimized
       />
       <span className="font-serif text-xl tracking-tight">
-        Revollution Ideias
+        Revollution Lastro
       </span>
     </Link>
   );

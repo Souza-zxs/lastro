@@ -79,7 +79,7 @@ export function CardAppMobile() {
       <div className="flex items-start gap-3">
         <Smartphone className="mt-0.5 size-5 shrink-0 text-ledger" />
         <div>
-          <p className="font-medium text-ink">Tenha o Lastro no seu celular</p>
+          <p className="font-medium text-ink">Tenha o Revollution Lastro no seu celular</p>
           <p className="mt-1 text-sm text-ink-muted">
             Funciona como app em Android e iPhone: no menu do navegador, escolha{" "}
             <strong className="text-ink">&quot;Adicionar à tela inicial&quot;</strong> (ou{" "}

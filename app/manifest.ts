@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Lastro",
+    name: "Revollution Lastro",
     short_name: "Lastro",
     description: "Prova de anterioridade de imagens e acompanhamento de processos do INPI.",
     start_url: "/dashboard",

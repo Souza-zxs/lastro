@@ -45,7 +45,7 @@ export function Footer() {
             eventuais disputas.
           </p>
           <p className="mt-3 text-xs text-ink-muted/80">
-            © 2026 Revollution Ideias. Todos os direitos reservados.
+            © 2026 Revollution Lastro. Todos os direitos reservados.
           </p>
         </div>
       </div>

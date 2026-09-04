@@ -3,10 +3,10 @@ self.addEventListener("push", (event) => {
   try {
     dados = event.data ? event.data.json() : {};
   } catch {
-    dados = { titulo: "Lastro", corpo: event.data ? event.data.text() : "" };
+    dados = { titulo: "Revollution Lastro", corpo: event.data ? event.data.text() : "" };
   }
 
-  const titulo = dados.titulo || "Lastro";
+  const titulo = dados.titulo || "Revollution Lastro";
   const opcoes = {
     body: dados.corpo || "",
     icon: "/icons/icon-192.png",

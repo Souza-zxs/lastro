@@ -56,7 +56,7 @@ export default function LandingPage() {
               Registre a autoria da sua imagem antes que alguém duvide dela.
             </h1>
             <p className="mt-6 max-w-lg text-lg leading-relaxed text-ink-muted">
-              Revollution Ideias gera um carimbo de tempo e um certificado verificável
+              Revollution Lastro gera um carimbo de tempo e um certificado verificável
               para cada imagem que você registra — sua evidência de que a
               obra já existia, com o seu nome, numa data específica.
             </p>
