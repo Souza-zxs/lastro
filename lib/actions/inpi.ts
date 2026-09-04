@@ -1,8 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { TipoProcessoInpi } from "@/lib/types";
+
+const ERROS_CONHECIDOS = ["sem_plano_ativo", "limite_processos_atingido"];
 
 export async function adicionarProcessoInpi(formData: FormData) {
   const numeroProcesso = String(formData.get("numero_processo") ?? "").trim();
@@ -14,11 +17,16 @@ export async function adicionarProcessoInpi(formData: FormData) {
   }
 
   const supabase = await getSupabaseServerClient();
-  await supabase.rpc("criar_processo_inpi", {
+  const { error } = await supabase.rpc("criar_processo_inpi", {
     p_numero_processo: numeroProcesso,
     p_tipo: tipo,
     p_apelido: apelido,
   } as never);
+
+  if (error) {
+    const codigo = ERROS_CONHECIDOS.find((c) => error.message.includes(c)) ?? "erro";
+    redirect(`/dashboard/inpi?erro=${codigo}`);
+  }
 
   revalidatePath("/dashboard/inpi");
 }

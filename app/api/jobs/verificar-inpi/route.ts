@@ -20,7 +20,7 @@ interface ProcessoParaVerificar {
   tipo: TipoProcessoInpi;
   situacao: string | null;
   despacho_codigo: string | null;
-  usuarios: { nome: string; email: string };
+  usuarios: { nome: string; email: string; plano_id: string | null };
 }
 
 export async function GET(request: Request) {
@@ -36,8 +36,12 @@ export async function GET(request: Request) {
 
   const { data: processos, error } = (await admin
     .from("processos_inpi")
-    .select("id, user_id, numero_processo, tipo, situacao, despacho_codigo, usuarios!inner(nome, email)")
+    .select("id, user_id, numero_processo, tipo, situacao, despacho_codigo, usuarios!inner(nome, email, plano_id)")
     .eq("ativo", true)
+    // Só verifica processos de usuário com plano ativo — acompanhamento
+    // de INPI deixou de ser um recurso gratuito (ver migration
+    // 20260903010000_planos_assinatura.sql).
+    .not("usuarios.plano_id", "is", null)
     .or(`ultima_verificacao_em.is.null,ultima_verificacao_em.lt.${limite}`)
     .limit(LOTE)) as { data: ProcessoParaVerificar[] | null; error: { message: string } | null };
 

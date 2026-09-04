@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Landmark, Trash2 } from "lucide-react";
+import { Landmark, Lock, Trash2 } from "lucide-react";
 import { ProcessoInpiTipoBadge } from "@/components/ProcessoInpiTipoBadge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,19 +15,37 @@ import { formatData, formatDataHora } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { adicionarProcessoInpi, removerProcessoInpi } from "@/lib/actions/inpi";
+import { getPlano } from "@/lib/planos";
 import type { ProcessoInpi } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export default async function ProcessosInpiPage() {
+const MENSAGENS_ERRO: Record<string, string> = {
+  sem_plano_ativo: "Você precisa de um plano ativo pra acompanhar processos do INPI.",
+  limite_processos_atingido: "Você atingiu o limite de processos do seu plano.",
+  erro: "Não foi possível adicionar o processo.",
+};
+
+export default async function ProcessosInpiPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ erro?: string }>;
+}) {
+  const { erro } = await searchParams;
   const supabase = await getSupabaseServerClient();
 
-  const { data: processos } = await supabase
-    .from("processos_inpi")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const [{ data: processos }, { data: usuario }] = await Promise.all([
+    supabase.from("processos_inpi").select("*").order("created_at", { ascending: false }),
+    supabase.from("usuarios").select("plano_id, plano_processos_bonus").single(),
+  ]);
 
   const lista = (processos ?? []) as ProcessoInpi[];
+  const planoAtual = usuario?.plano_id ? getPlano(usuario.plano_id) : null;
+  const limiteProcessos = planoAtual
+    ? planoAtual.processosInpiInclusos + (usuario?.plano_processos_bonus ?? 0)
+    : 0;
+  const emUso = lista.length;
+  const noLimite = Boolean(planoAtual) && emUso >= limiteProcessos;
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
@@ -43,40 +61,82 @@ export default async function ProcessosInpiPage() {
         Revista da Propriedade Industrial (RPI) é o único canal oficial de publicação de despachos.
       </div>
 
-      <form action={adicionarProcessoInpi} className="mt-8 grid gap-4 border border-line bg-paper-certificate/60 p-5 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-end">
-        <div className="space-y-1.5">
-          <Label htmlFor="numero_processo">Número do processo</Label>
-          <Input id="numero_processo" name="numero_processo" placeholder="Ex.: 823767730" required />
+      {erro && (
+        <div className="mt-4 max-w-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {MENSAGENS_ERRO[erro] ?? MENSAGENS_ERRO.erro}
         </div>
+      )}
 
-        <div className="space-y-1.5">
-          <Label htmlFor="tipo">Tipo</Label>
-          <Select name="tipo" defaultValue="marca">
-            <SelectTrigger id="tipo" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="marca">Marca</SelectItem>
-              <SelectItem value="patente">Patente</SelectItem>
-              <SelectItem value="desenho_industrial">Desenho industrial</SelectItem>
-            </SelectContent>
-          </Select>
+      {!planoAtual ? (
+        <div className="mt-8 flex items-start gap-3 border border-line bg-paper-certificate/60 px-5 py-4">
+          <Lock className="mt-0.5 size-5 shrink-0 text-ink-muted" />
+          <div>
+            <p className="text-sm text-ink-muted">
+              Acompanhamento de INPI é um benefício dos planos de assinatura do Lastro — você não
+              tem um plano ativo no momento.
+            </p>
+            <Link href="/precos" className={cn(buttonVariants({ size: "sm" }), "mt-3")}>
+              Ver planos
+            </Link>
+          </div>
         </div>
+      ) : (
+        <>
+          <p className="mt-6 text-sm text-ink-muted">
+            <strong className="text-ink">{emUso}</strong> de{" "}
+            <strong className="text-ink">{limiteProcessos}</strong> processos usados no plano{" "}
+            <strong className="text-ink">{planoAtual.nome}</strong>.
+          </p>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="apelido">Apelido (opcional)</Label>
-          <Input id="apelido" name="apelido" placeholder="Ex.: Logo da marca X" />
-        </div>
+          {noLimite ? (
+            <div className="mt-4 max-w-2xl border border-dashed border-line bg-paper-certificate/60 p-4 text-sm text-ink-muted">
+              Limite de processos do plano atingido. Remova um processo abaixo ou{" "}
+              <Link href="/precos" className="text-ledger hover:underline">
+                faça upgrade de plano
+              </Link>{" "}
+              pra acompanhar mais.
+            </div>
+          ) : (
+            <form
+              action={adicionarProcessoInpi}
+              className="mt-4 grid gap-4 border border-line bg-paper-certificate/60 p-5 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-end"
+            >
+              <div className="space-y-1.5">
+                <Label htmlFor="numero_processo">Número do processo</Label>
+                <Input id="numero_processo" name="numero_processo" placeholder="Ex.: 823767730" required />
+              </div>
 
-        <Button type="submit">Adicionar</Button>
-      </form>
+              <div className="space-y-1.5">
+                <Label htmlFor="tipo">Tipo</Label>
+                <Select name="tipo" defaultValue="marca">
+                  <SelectTrigger id="tipo" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="marca">Marca</SelectItem>
+                    <SelectItem value="patente">Patente</SelectItem>
+                    <SelectItem value="desenho_industrial">Desenho industrial</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="apelido">Apelido (opcional)</Label>
+                <Input id="apelido" name="apelido" placeholder="Ex.: Logo da marca X" />
+              </div>
+
+              <Button type="submit">Adicionar</Button>
+            </form>
+          )}
+        </>
+      )}
 
       {lista.length === 0 ? (
         <div className="mt-8 flex items-start gap-3 border border-line bg-paper-certificate/60 px-5 py-4">
           <Landmark className="mt-0.5 size-5 shrink-0 text-ink-muted" />
           <p className="text-sm text-ink-muted">
-            Nenhum processo cadastrado ainda. Adicione um número de processo acima para começar a
-            acompanhar.
+            Nenhum processo cadastrado ainda.
+            {planoAtual && " Adicione um número de processo acima para começar a acompanhar."}
           </p>
         </div>
       ) : (

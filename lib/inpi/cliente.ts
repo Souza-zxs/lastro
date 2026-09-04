@@ -142,27 +142,77 @@ function paraDataIso(valor: string | undefined): string | null {
   return match ? `${match[3]}-${match[2]}-${match[1]}` : null;
 }
 
+/**
+ * Estratégia principal, validada contra uma consulta real de marca por
+ * número de processo: o resultado vem como uma TABELA (mesmo formato de
+ * uma busca por nome/titular), não como uma página de detalhe com
+ * rótulo/valor — mesmo pra um único processo encontrado. Acha a linha de
+ * cabeçalho (a que contém a célula "Situação") e lê a linha de dados
+ * logo abaixo dela, pareando por posição de coluna — isso é resiliente a
+ * colunas sem rótulo (ex.: células só com ícone).
+ */
+function extrairLinhaResultado($: cheerio.CheerioAPI): Map<string, string> | null {
+  const textosPorLinha = $("tr")
+    .toArray()
+    .map((tr) => $(tr).find("td").toArray().map((td) => $(td).text().replace(/\s+/g, " ").trim()));
+
+  const indiceCabecalho = textosPorLinha.findIndex(
+    (textos) => textos.includes("Situação") || textos.includes("Situacao")
+  );
+  const cabecalho = indiceCabecalho >= 0 ? textosPorLinha[indiceCabecalho] : undefined;
+  const valores = indiceCabecalho >= 0 ? textosPorLinha[indiceCabecalho + 1] : undefined;
+  if (!cabecalho || !valores) return null;
+
+  const mapa = new Map<string, string>();
+  cabecalho.forEach((rotulo, i) => {
+    if (rotulo) mapa.set(rotulo, valores[i] ?? "");
+  });
+  return mapa;
+}
+
 function parseResultado(html: string): ResultadoConsultaInpi {
   if (PADRAO_NAO_ENCONTRADO.test(html)) {
     return { tipo: "nao_encontrado" };
   }
 
   const $ = cheerio.load(html);
-  const campos = extrairCamposRotulados($);
   const textoCompleto = $("body").text();
 
   const revistaMatch = textoCompleto.match(/N[ºo°]\s*da Revista:\s*(\S+)/i);
   const atualizadoMatch = textoCompleto.match(/Dados atualizados\s+at[ée]\s*(\d{2}\/\d{2}\/\d{4})/i);
+  const numeroRpi = revistaMatch?.[1]?.trim() || null;
+  const dadosAtualizadosAte = paraDataIso(atualizadoMatch?.[1]);
 
+  const linha = extrairLinhaResultado($);
+  if (linha) {
+    const situacao = linha.get("Situação") || linha.get("Situacao") || null;
+    return {
+      tipo: "encontrado",
+      situacao,
+      // A tabela de resultado não mostra código/data de despacho
+      // individual (só a situação atual e a data de prioridade/depósito,
+      // que não é despacho) — pra isso seria preciso abrir a página de
+      // detalhe do processo (link "Action=detail&CodPedido=..." na
+      // própria linha), não implementado ainda.
+      despachoCodigo: null,
+      despachoDescricao: situacao,
+      despachoData: null,
+      numeroRpi,
+      dadosAtualizadosAte,
+    };
+  }
+
+  // Fallback pro formato "rótulo em <b> seguido do valor como texto" —
+  // não confirmado contra nenhuma resposta real até agora (toda consulta
+  // testada devolveu tabela), mantido por segurança caso patente/desenho
+  // usem um formato diferente de marca.
+  const campos = extrairCamposRotulados($);
   const situacao = campos.get("Situação") ?? campos.get("Situacao") ?? null;
   const despachoDescricao = campos.get("Despacho") ?? campos.get("Último Despacho") ?? null;
   const despachoCodigo = campos.get("Código do Despacho") ?? campos.get("Cod. Despacho") ?? null;
   const despachoData = paraDataIso(campos.get("Data do Despacho") ?? campos.get("Data"));
 
-  // Nenhum campo reconhecido: a página não bateu com o padrão esperado
-  // (provável em patente/desenho, cujo caso "encontrado" ainda não foi
-  // validado — ver comentário de extrairCamposRotulados).
-  if (!situacao && !despachoDescricao && campos.size === 0) {
+  if (!situacao && !despachoDescricao) {
     return { tipo: "nao_reconhecido" };
   }
 
@@ -172,8 +222,8 @@ function parseResultado(html: string): ResultadoConsultaInpi {
     despachoCodigo,
     despachoDescricao,
     despachoData,
-    numeroRpi: revistaMatch?.[1]?.trim() || null,
-    dadosAtualizadosAte: paraDataIso(atualizadoMatch?.[1]),
+    numeroRpi,
+    dadosAtualizadosAte,
   };
 }
 
