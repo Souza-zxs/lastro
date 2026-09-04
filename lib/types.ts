@@ -27,6 +27,10 @@ export interface Usuario {
   creditos_disponiveis: number;
   membro_desde: string;
   monitoramento_ativo: boolean;
+  plano_id: string | null;
+  plano_ciclo: string | null;
+  plano_processos_bonus: number;
+  plano_ativado_em: string | null;
 }
 
 export type StatusAlerta = "novo" | "revisado" | "ignorado" | "em_disputa" | "resolvido";

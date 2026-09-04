@@ -1,6 +1,16 @@
+"use client";
+
 import Link from "next/link";
+import { Menu } from "lucide-react";
 import { Logo } from "@/components/Logo";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -12,8 +22,33 @@ const links = [
 export function Navbar() {
   return (
     <header className="border-b border-line/80 bg-paper/85 backdrop-blur supports-backdrop-filter:bg-paper/70 sticky top-0 z-40">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <Logo />
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:px-6">
+        <div className="flex items-center gap-2">
+          {/* Menu mobile: os mesmos links de "nav" abaixo (e "Entrar")
+              ficam escondidos em telas pequenas, sem isso não tinha jeito
+              de navegar pelo celular além de "Criar conta". */}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button variant="ghost" size="icon" className="shrink-0 md:hidden" aria-label="Abrir menu">
+                  <Menu className="size-5" />
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="start" className="w-56">
+              {links.map((link) => (
+                <DropdownMenuItem key={link.href} render={<Link href={link.href} />}>
+                  {link.label}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem render={<Link href="/login" />}>Entrar</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Logo />
+        </div>
+
         <nav className="hidden items-center gap-7 md:flex">
           {links.map((link) => (
             <Link

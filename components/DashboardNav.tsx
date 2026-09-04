@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Plus, LayoutGrid, ShieldAlert, Landmark, LogOut, User } from "lucide-react";
+import { Plus, LayoutGrid, ShieldAlert, Landmark, LogOut, User, Menu } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -29,65 +29,72 @@ function initials(nome: string) {
 
 export function DashboardNav({ usuario }: { usuario: Usuario }) {
   const pathname = usePathname();
-  const isDashboardHome = pathname === "/dashboard";
-  const isAlertas = pathname === "/dashboard/alertas";
-  const isInpi = pathname?.startsWith("/dashboard/inpi") ?? false;
+
+  const itensNav = [
+    { href: "/dashboard", label: "Painel", icon: LayoutGrid, ativo: pathname === "/dashboard" },
+    { href: "/dashboard/alertas", label: "Alertas", icon: ShieldAlert, ativo: pathname === "/dashboard/alertas" },
+    { href: "/dashboard/inpi", label: "INPI", icon: Landmark, ativo: pathname?.startsWith("/dashboard/inpi") ?? false },
+  ];
 
   return (
     <header className="print:hidden border-b border-line/80 bg-paper-certificate">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <div className="flex items-center gap-8">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:px-6">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-8">
+          {/* Menu mobile: os mesmos links de "nav" abaixo ficam escondidos
+              em telas pequenas (sm:flex) sem isso, sem nenhum jeito de
+              navegar entre Painel/Alertas/INPI pelo celular. */}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button variant="ghost" size="icon" className="shrink-0 sm:hidden" aria-label="Abrir menu">
+                  <Menu className="size-5" />
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuLabel className="text-xs font-normal text-ink-muted">
+                <strong className="text-ink">{usuario.creditos_disponiveis}</strong> créditos
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {itensNav.map((item) => (
+                <DropdownMenuItem key={item.href} render={<Link href={item.href} />}>
+                  <item.icon className="size-4" />
+                  {item.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Logo />
+
           <nav className="hidden items-center gap-1 sm:flex">
-            <Link
-              href="/dashboard"
-              className={cn(
-                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors",
-                isDashboardHome
-                  ? "bg-secondary text-ledger"
-                  : "text-ink-muted hover:text-ink"
-              )}
-            >
-              <LayoutGrid className="size-3.5" />
-              Painel
-            </Link>
-            <Link
-              href="/dashboard/alertas"
-              className={cn(
-                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors",
-                isAlertas
-                  ? "bg-secondary text-ledger"
-                  : "text-ink-muted hover:text-ink"
-              )}
-            >
-              <ShieldAlert className="size-3.5" />
-              Alertas
-            </Link>
-            <Link
-              href="/dashboard/inpi"
-              className={cn(
-                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors",
-                isInpi
-                  ? "bg-secondary text-ledger"
-                  : "text-ink-muted hover:text-ink"
-              )}
-            >
-              <Landmark className="size-3.5" />
-              INPI
-            </Link>
+            {itensNav.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors",
+                  item.ativo ? "bg-secondary text-ledger" : "text-ink-muted hover:text-ink"
+                )}
+              >
+                <item.icon className="size-3.5" />
+                {item.label}
+              </Link>
+            ))}
           </nav>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <span className="hidden text-xs text-ink-muted sm:inline">
             <strong className="text-ink">{usuario.creditos_disponiveis}</strong> créditos
           </span>
           <Link
             href="/dashboard/novo"
-            className={cn(buttonVariants({ size: "sm" }), "gap-1.5")}
+            className={cn(buttonVariants({ size: "sm" }), "gap-1.5 px-2.5 sm:px-3")}
+            aria-label="Novo registro"
           >
             <Plus className="size-3.5" />
-            Novo registro
+            <span className="hidden sm:inline">Novo registro</span>
           </Link>
 
           <DropdownMenu>
@@ -111,6 +118,9 @@ export function DashboardNav({ usuario }: { usuario: Usuario }) {
               <DropdownMenuItem render={<Link href="/dashboard" />}>
                 <User className="size-4" />
                 Meu painel
+              </DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/dashboard/perfil" />}>
+                Perfil
               </DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/precos" />}>
                 Gerenciar plano
