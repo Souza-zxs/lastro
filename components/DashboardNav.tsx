@@ -8,6 +8,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -52,9 +53,11 @@ export function DashboardNav({ usuario }: { usuario: Usuario }) {
               }
             />
             <DropdownMenuContent align="start" className="w-56">
-              <DropdownMenuLabel className="text-xs font-normal text-ink-muted">
-                <strong className="text-ink">{usuario.creditos_disponiveis}</strong> créditos
-              </DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="text-xs font-normal text-ink-muted">
+                  <strong className="text-ink">{usuario.creditos_disponiveis}</strong> créditos
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
               {itensNav.map((item) => (
                 <DropdownMenuItem key={item.href} render={<Link href={item.href} />}>
@@ -110,10 +113,12 @@ export function DashboardNav({ usuario }: { usuario: Usuario }) {
               }
             />
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel className="flex flex-col gap-0.5 px-2 py-1.5">
-                <span className="text-sm font-medium text-ink">{usuario.nome}</span>
-                <span className="text-xs font-normal text-ink-muted">{usuario.email}</span>
-              </DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="flex flex-col gap-0.5 px-2 py-1.5">
+                  <span className="text-sm font-medium text-ink">{usuario.nome}</span>
+                  <span className="text-xs font-normal text-ink-muted">{usuario.email}</span>
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem render={<Link href="/dashboard" />}>
                 <User className="size-4" />
