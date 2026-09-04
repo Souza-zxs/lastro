@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Public_Sans, Newsreader, IBM_Plex_Mono } from "next/font/google";
+import { RegistrarServiceWorker } from "@/components/RegistrarServiceWorker";
 import "./globals.css";
 
 const publicSans = Public_Sans({
@@ -48,6 +49,7 @@ export default function RootLayout({
       className={`${publicSans.variable} ${newsreader.variable} ${plexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-paper text-foreground">
+        <RegistrarServiceWorker />
         {children}
       </body>
     </html>

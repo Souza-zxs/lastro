@@ -1,3 +1,10 @@
+// Sem esse listener, o Chrome não considera o site instalável como PWA e o
+// evento beforeinstallprompt (usado pelo botão "Instalar app") nunca
+// dispara. Não precisamos interceptar nada: sem chamar event.respondWith,
+// a requisição segue normal pra rede — só a presença do listener já
+// satisfaz o critério de instalabilidade.
+self.addEventListener("fetch", () => {});
+
 self.addEventListener("push", (event) => {
   let dados = {};
   try {
