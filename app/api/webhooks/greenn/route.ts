@@ -40,15 +40,37 @@ function inferirPlanoECiclo(nomeProduto: string | undefined | null) {
 }
 
 /**
- * A Greenn não assina nem manda token nenhum sozinha — a autenticação é
- * nossa: a "URL do Webhook" cadastrada no painel dela (Produtos > editar
- * produto > Conteúdos > Sistema Externo > Webhook) deve incluir
- * ?token=<GREENN_WEBHOOK_TOKEN>. Ver migration 20260904020000.
+ * A Greenn gera um "Webhook Token" por conta (Sistema > Integrações e
+ * Tokens > Webhook > Gerar novo token — é o mesmo valor de
+ * GREENN_WEBHOOK_TOKEN), mas a documentação pública dela não diz em qual
+ * header/parâmetro esse token volta em cada chamada. Pra não travar tudo
+ * numa suposição errada, aceita o token em qualquer um dos lugares
+ * plausíveis: header Authorization (Bearer ou puro), headers comuns de
+ * webhook, ou ?token= na URL (essa última também serve como plano B: se a
+ * Greenn não mandar o token sozinha, dá pra colar
+ * .../api/webhooks/greenn?token=<GREENN_WEBHOOK_TOKEN> na "URL do
+ * Webhook" de cada produto, que é o único campo exposto na tela de
+ * configuração por produto). Se um teste real mostrar onde a Greenn manda
+ * o token, isso pode ser simplificado depois.
  */
+function extrairToken(request: Request, url: URL): string | null {
+  const auth = request.headers.get("authorization");
+  if (auth) return auth.replace(/^Bearer\s+/i, "").trim();
+
+  const headerDireto =
+    request.headers.get("x-webhook-token") ??
+    request.headers.get("webhook-token") ??
+    request.headers.get("x-greenn-token") ??
+    request.headers.get("x-greenn-webhook-token");
+  if (headerDireto) return headerDireto;
+
+  return url.searchParams.get("token");
+}
+
 export async function POST(request: Request) {
   const url = new URL(request.url);
   const tokenEsperado = process.env.GREENN_WEBHOOK_TOKEN;
-  const tokenRecebido = url.searchParams.get("token");
+  const tokenRecebido = extrairToken(request, url);
 
   if (!tokenEsperado || tokenRecebido !== tokenEsperado) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
