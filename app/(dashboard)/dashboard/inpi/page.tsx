@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Landmark, Lock, Trash2 } from "lucide-react";
+import { CardAppMobile } from "@/components/CardAppMobile";
 import { ProcessoInpiTipoBadge } from "@/components/ProcessoInpiTipoBadge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,6 +88,10 @@ export default async function ProcessosInpiPage({
         </div>
       ) : (
         <>
+          <div className="mt-6">
+            <CardAppMobile />
+          </div>
+
           <p className="mt-6 text-sm text-ink-muted">
             <strong className="text-ink">{emUso}</strong> de{" "}
             <strong className="text-ink">{limiteProcessos}</strong> processos usados no plano{" "}

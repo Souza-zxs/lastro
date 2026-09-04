@@ -26,6 +26,15 @@ export const metadata: Metadata = {
   title: "Revollution Ideias — Registro de autoria de imagens",
   description:
     "Carimbo de tempo e certificado de anterioridade para fotógrafos, ilustradores e designers.",
+  appleWebApp: {
+    capable: true,
+    title: "Lastro",
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({

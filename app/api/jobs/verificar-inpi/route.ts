@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/server";
 import { abrirSessaoInpi, consultarProcesso } from "@/lib/inpi/cliente";
 import { enviarEmail } from "@/lib/email";
+import { enviarPushParaUsuario } from "@/lib/push";
 import type { TipoProcessoInpi } from "@/lib/types";
 
 const LOTE = 20;
@@ -130,6 +131,15 @@ export async function GET(request: Request) {
         };
         resumo.quantidade += 1;
         novosEventosPorUsuario.set(processo.user_id, resumo);
+
+        // Sem await no fluxo principal do lote — uma falha ou lentidão no
+        // envio de push não pode atrasar a verificação dos outros
+        // processos (mesmo raciocínio de tolerância a falha do e-mail).
+        enviarPushParaUsuario(processo.user_id, {
+          titulo: `Atualização: ${processo.numero_processo}`,
+          corpo: resultado.situacao ?? resultado.despachoDescricao ?? "O processo teve uma atualização.",
+          url: `/dashboard/inpi/${processo.id}`,
+        }).catch(() => {});
       } else {
         await admin.rpc("marcar_processo_inpi_verificado", {
           p_processo_id: processo.id,
