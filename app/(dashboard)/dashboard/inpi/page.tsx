@@ -64,6 +64,11 @@ export default async function ProcessosInpiPage({
       {erro && (
         <div className="mt-4 max-w-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           {MENSAGENS_ERRO[erro] ?? MENSAGENS_ERRO.erro}
+          {(erro === "sem_plano_ativo" || erro === "limite_processos_atingido") && (
+            <Link href="/precos" className="mt-2 block font-medium underline underline-offset-2">
+              {erro === "sem_plano_ativo" ? "Ver planos" : "Ver planos com mais processos inclusos"}
+            </Link>
+          )}
         </div>
       )}
 

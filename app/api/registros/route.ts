@@ -73,7 +73,10 @@ export async function POST(request: Request) {
   if (error) {
     if (error.message.includes("creditos_insuficientes")) {
       return NextResponse.json(
-        { error: "Você não tem créditos suficientes para registrar uma imagem." },
+        {
+          error: "Você não tem créditos suficientes para registrar uma imagem.",
+          codigo: "creditos_insuficientes",
+        },
         { status: 402 }
       );
     }

@@ -32,6 +32,7 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
   const [categoria, setCategoria] = useState("Fotografia");
   const [resultado, setResultado] = useState<Registro | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [semCreditos, setSemCreditos] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   function carregarArquivo(file: File | undefined) {
@@ -47,6 +48,7 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
     if (!arquivo || !preview || !titulo) return;
 
     setErro(null);
+    setSemCreditos(false);
     setEtapa("processando");
 
     try {
@@ -71,6 +73,7 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
 
       if (!response.ok) {
         setErro(data.error ?? "Não foi possível concluir o registro.");
+        setSemCreditos(data.codigo === "creditos_insuficientes");
         setEtapa("formulario");
         return;
       }
@@ -226,7 +229,14 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
           {erro && (
             <div className="flex items-start gap-2.5 border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
               <AlertCircle className="mt-0.5 size-4 shrink-0" />
-              {erro}
+              <div>
+                {erro}
+                {semCreditos && (
+                  <Link href="/precos" className="mt-2 block font-medium underline underline-offset-2">
+                    Ver planos e pacotes de créditos
+                  </Link>
+                )}
+              </div>
             </div>
           )}
 
