@@ -2,6 +2,8 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { RegistroCard } from "@/components/RegistroCard";
+import { InstalarAppCard } from "@/components/InstalarAppCard";
+import { BemVindoInstalarDialog } from "@/components/BemVindoInstalarDialog";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
@@ -29,6 +31,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
+      <BemVindoInstalarDialog />
+
       <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
         <div>
           <p className="text-sm text-ink-muted">Olá, {usuario.nome.split(" ")[0]}</p>
@@ -41,6 +45,10 @@ export default async function DashboardPage() {
           <Plus className="size-4" />
           Novo registro
         </Link>
+      </div>
+
+      <div className="mt-6">
+        <InstalarAppCard />
       </div>
 
       <dl className="mt-8 grid grid-cols-3 gap-4 border-y border-line py-5 sm:max-w-md">
