@@ -1,5 +1,6 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { RegistroCard } from "@/components/RegistroCard";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,12 @@ export default async function DashboardPage() {
     supabase.from("registros").select("*").order("data_registro", { ascending: false }),
     supabase.from("usuarios").select("*").single(),
   ]);
+
+  // Mesma checagem de app/(dashboard)/layout.tsx: se essa consulta falhar
+  // (rede instável, timeout pontual do Supabase) sem o guard aqui o
+  // acesso a `usuario.nome` embaixo quebra a página inteira — e como não
+  // existe error.tsx dentro de (dashboard), o erro derruba até a navbar.
+  if (!usuarioData) redirect("/login");
 
   const lista = (registros ?? []) as Registro[];
   const usuario = usuarioData as Usuario;
