@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { GuiaInstalarIOS } from "@/components/GuiaInstalarIOS";
 import { cn } from "@/lib/utils";
-import { useAppInstalado } from "@/lib/pwa";
+import { getGuiaInstalacaoIOS, isIOS, useAppInstalado } from "@/lib/pwa";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -51,13 +52,15 @@ export function InstallAppButton({
         <Download className="size-4" />
         Instalar app
       </Button>
-      {mostrarInstrucoes && (
-        <p className="max-w-xs text-xs text-ink-muted">
-          No iPhone: toque em <strong className="text-ink">Compartilhar</strong> no Safari e escolha{" "}
-          <strong className="text-ink">&quot;Adicionar à Tela de Início&quot;</strong>. Em outros
-          navegadores, procure &quot;Instalar app&quot; ou &quot;Adicionar à tela inicial&quot; no menu.
-        </p>
-      )}
+      {mostrarInstrucoes &&
+        (isIOS() ? (
+          <GuiaInstalarIOS variante={getGuiaInstalacaoIOS()} />
+        ) : (
+          <p className="max-w-xs text-xs text-ink-muted">
+            Procure &quot;Instalar app&quot; ou &quot;Adicionar à tela inicial&quot; no menu do
+            navegador.
+          </p>
+        ))}
     </div>
   );
 }
