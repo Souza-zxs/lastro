@@ -10,7 +10,8 @@ const INTERVALO_ENTRE_VERIFICACOES_DIAS = 7; // a RPI só é publicada semanalme
 // Mesmo limite do job de monitoramento (app/api/jobs/monitorar) — 60s é o
 // máximo do plano Hobby da Vercel. A sessão do INPI é aberta uma vez só e
 // reaproveitada por todo o lote (handshake ~1,5s, cada consulta ~2-3s
-// medido contra o site real), então cabe tranquilo num lote de LOTE=20.
+// medido contra o site real, mais uma segunda ida na página de detalhe),
+// então cabe tranquilo num lote de LOTE=20.
 export const maxDuration = 60;
 
 interface ProcessoParaVerificar {
@@ -19,7 +20,7 @@ interface ProcessoParaVerificar {
   numero_processo: string;
   tipo: TipoProcessoInpi;
   situacao: string | null;
-  despacho_codigo: string | null;
+  despacho_descricao: string | null;
   usuarios: { nome: string; email: string; plano_id: string | null };
 }
 
@@ -36,7 +37,9 @@ export async function GET(request: Request) {
 
   const { data: processos, error } = (await admin
     .from("processos_inpi")
-    .select("id, user_id, numero_processo, tipo, situacao, despacho_codigo, usuarios!inner(nome, email, plano_id)")
+    .select(
+      "id, user_id, numero_processo, tipo, situacao, despacho_descricao, usuarios!inner(nome, email, plano_id)"
+    )
     .eq("ativo", true)
     // Só verifica processos de usuário com plano ativo — acompanhamento
     // de INPI deixou de ser um recurso gratuito (ver migration
@@ -96,18 +99,27 @@ export async function GET(request: Request) {
     }
 
     const mudou =
-      resultado.situacao !== processo.situacao || resultado.despachoCodigo !== processo.despacho_codigo;
+      resultado.situacao !== processo.situacao || resultado.despachoDescricao !== processo.despacho_descricao;
+
+    const camposRicos = {
+      p_numero_rpi: resultado.numeroRpi,
+      p_dados_atualizados_ate: resultado.dadosAtualizadosAte,
+      p_nome: resultado.nome,
+      p_titular: resultado.titular,
+      p_apresentacao: resultado.apresentacao,
+      p_natureza: resultado.natureza,
+      p_classe: resultado.classe,
+    };
 
     try {
       if (mudou) {
         await admin.rpc("registrar_evento_processo_inpi", {
           p_processo_id: processo.id,
-          p_despacho_codigo: resultado.despachoCodigo,
+          p_despacho_codigo: null,
           p_despacho_descricao: resultado.despachoDescricao ?? resultado.situacao ?? "Atualização sem descrição.",
           p_despacho_data: resultado.despachoData,
           p_situacao: resultado.situacao,
-          p_numero_rpi: resultado.numeroRpi,
-          p_dados_atualizados_ate: resultado.dadosAtualizadosAte,
+          ...camposRicos,
         } as never);
 
         eventosCriados += 1;
@@ -121,8 +133,7 @@ export async function GET(request: Request) {
       } else {
         await admin.rpc("marcar_processo_inpi_verificado", {
           p_processo_id: processo.id,
-          p_numero_rpi: resultado.numeroRpi,
-          p_dados_atualizados_ate: resultado.dadosAtualizadosAte,
+          ...camposRicos,
         } as never);
         semMudanca += 1;
       }

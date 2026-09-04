@@ -148,7 +148,9 @@ export default async function ProcessosInpiPage({
             >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-medium text-ink">{processo.apelido || processo.numero_processo}</p>
+                  <p className="font-medium text-ink">
+                    {processo.apelido || processo.nome || processo.numero_processo}
+                  </p>
                   <ProcessoInpiTipoBadge tipo={processo.tipo} />
                 </div>
                 <p className="mt-1 text-sm text-ink-muted">

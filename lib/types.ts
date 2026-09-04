@@ -52,7 +52,12 @@ export interface ProcessoInpi {
   numero_processo: string;
   tipo: TipoProcessoInpi;
   apelido: string | null;
+  nome: string | null;
   situacao: string | null;
+  titular: string | null;
+  apresentacao: string | null;
+  natureza: string | null;
+  classe: string | null;
   despacho_codigo: string | null;
   despacho_descricao: string | null;
   despacho_data: string | null;

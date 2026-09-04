@@ -1,14 +1,17 @@
 import * as cheerio from "cheerio";
+import type { Element } from "domhandler";
 import type { TipoProcessoInpi } from "@/lib/types";
 
 /**
  * Cliente do portal público de busca do INPI (pePI, busca.inpi.gov.br).
  * Não existe API oficial — este cliente reproduz o fluxo de consulta
- * anônima do próprio site: abrir uma sessão sem login, depois consultar
- * por número de processo reaproveitando o cookie de sessão. Só existe uma
- * fonte de dados aqui, então isso não é uma abstração de "provedor
- * escolhível" como lib/monitoramento/provedor.ts — é o cliente da única
- * fonte que existe.
+ * anônima do próprio site: abrir uma sessão sem login, buscar por número
+ * de processo, e então abrir a página de detalhe do resultado (mesma
+ * sessão) pra pegar o histórico de despachos de verdade — a lista de
+ * busca só mostra a situação atual, sem despacho/RPI. Só existe uma fonte
+ * de dados aqui, então isso não é uma abstração de "provedor escolhível"
+ * como lib/monitoramento/provedor.ts — é o cliente da única fonte que
+ * existe.
  */
 
 const BASE = "https://busca.inpi.gov.br/pePI";
@@ -31,18 +34,22 @@ export type ResultadoConsultaInpi =
   | { tipo: "nao_encontrado" }
   | {
       tipo: "encontrado";
+      nome: string | null;
       situacao: string | null;
-      despachoCodigo: string | null;
+      titular: string | null;
+      apresentacao: string | null;
+      natureza: string | null;
+      classe: string | null;
       despachoDescricao: string | null;
       despachoData: string | null;
       numeroRpi: string | null;
       dadosAtualizadosAte: string | null;
     }
   // A página não bateu com nenhum padrão conhecido (marcação do INPI
-  // mudou, ou o caso "encontrado" de patente/desenho ainda não foi
-  // validado contra uma resposta real — ver plano de implementação). O
-  // job trata isso como falha e não mexe no snapshot salvo, em vez de
-  // arriscar gravar um "não encontrado" ou "sem mudança" errado.
+  // mudou, ou patente/desenho usam uma marcação diferente de marca, ainda
+  // não confirmada). O job trata isso como falha e não mexe no snapshot
+  // salvo, em vez de arriscar gravar um "não encontrado" ou "sem mudança"
+  // errado.
   | { tipo: "nao_reconhecido" };
 
 async function fetchComTimeout(url: string, init?: RequestInit): Promise<Response> {
@@ -113,25 +120,21 @@ function corpoDaConsulta(tipo: TipoProcessoInpi, numeroProcesso: string): string
   return body.toString();
 }
 
-/**
- * Extrai pares rótulo/valor do formato usado nas páginas de resultado do
- * pePI: `<B>Nº do Processo: </B>&nbsp; 823767730 <BR>` — um <b> com o
- * rótulo, seguido de um nó de texto com o valor. Validado contra o HTML
- * real do caso "não encontrado" de marca; o caso "encontrado" (e as
- * páginas de patente/desenho) ainda precisam ser conferidos contra uma
- * consulta real para confirmar que usam o mesmo padrão.
- */
-function extrairCamposRotulados($: cheerio.CheerioAPI): Map<string, string> {
-  const campos = new Map<string, string>();
-  $("b, B").each((_, elemento) => {
-    const rotulo = $(elemento).text().replace(/[:\s]+$/, "").trim();
-    if (!rotulo) return;
-    const proximo = elemento.nextSibling;
-    const bruto = proximo && proximo.type === "text" ? (proximo.data ?? "") : "";
-    const valor = bruto.replace(/ /g, " ").trim();
-    if (valor) campos.set(rotulo, valor);
+async function buscarHtml(url: string, cookie: string, corpo?: string): Promise<string> {
+  const resposta = await fetchComTimeout(url, {
+    method: corpo ? "POST" : "GET",
+    headers: {
+      "User-Agent": USER_AGENT,
+      Cookie: cookie,
+      ...(corpo ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
+    },
+    body: corpo,
   });
-  return campos;
+
+  // O site responde em ISO-8859-1 — resposta.text() assumiria UTF-8 e
+  // estragaria acentuação, o que quebraria os regexes de rótulo abaixo.
+  const buffer = await resposta.arrayBuffer();
+  return new TextDecoder("iso-8859-1").decode(buffer);
 }
 
 const PADRAO_NAO_ENCONTRADO = /nenhum resultado foi encontrado/i;
@@ -143,85 +146,166 @@ function paraDataIso(valor: string | undefined): string | null {
 }
 
 /**
- * Estratégia principal, validada contra uma consulta real de marca por
- * número de processo: o resultado vem como uma TABELA (mesmo formato de
- * uma busca por nome/titular), não como uma página de detalhe com
- * rótulo/valor — mesmo pra um único processo encontrado. Acha a linha de
- * cabeçalho (a que contém a célula "Situação") e lê a linha de dados
- * logo abaixo dela, pareando por posição de coluna — isso é resiliente a
- * colunas sem rótulo (ex.: células só com ícone).
+ * Texto de uma célula, sem o conteúdo de tooltips escondidos que o INPI
+ * embute como `<div>` dentro da própria célula (ex.: a explicação da
+ * classe de Nice some no hover) — sem remover isso, `.text()` traz o
+ * tooltip inteiro junto com o valor real da célula.
  */
-function extrairLinhaResultado($: cheerio.CheerioAPI): Map<string, string> | null {
-  const textosPorLinha = $("tr")
-    .toArray()
-    .map((tr) => $(tr).find("td").toArray().map((td) => $(td).text().replace(/\s+/g, " ").trim()));
-
-  const indiceCabecalho = textosPorLinha.findIndex(
-    (textos) => textos.includes("Situação") || textos.includes("Situacao")
-  );
-  const cabecalho = indiceCabecalho >= 0 ? textosPorLinha[indiceCabecalho] : undefined;
-  const valores = indiceCabecalho >= 0 ? textosPorLinha[indiceCabecalho + 1] : undefined;
-  if (!cabecalho || !valores) return null;
-
-  const mapa = new Map<string, string>();
-  cabecalho.forEach((rotulo, i) => {
-    if (rotulo) mapa.set(rotulo, valores[i] ?? "");
-  });
-  return mapa;
+function textoDoNo($: cheerio.CheerioAPI, elemento: Element | undefined): string {
+  if (!elemento) return "";
+  return $(elemento).clone().find("div").remove().end().text().replace(/\s+/g, " ").trim();
 }
 
-function parseResultado(html: string): ResultadoConsultaInpi {
-  if (PADRAO_NAO_ENCONTRADO.test(html)) {
-    return { tipo: "nao_encontrado" };
-  }
+/**
+ * Extrai o valor ao lado de um rótulo no formato usado no bloco de topo
+ * da página de detalhe: `<td>Situação:</td><td>valor</td>` — duas
+ * células irmãs, rótulo na primeira. Validado contra o HTML real da
+ * página de detalhe de marca.
+ */
+function extrairRotuloEmTd($: cheerio.CheerioAPI, rotulo: string): string | null {
+  let valor: string | null = null;
+  $("td").each((_, celula) => {
+    if (valor !== null) return;
+    const texto = textoDoNo($, celula).replace(/:$/, "");
+    if (texto !== rotulo) return;
+    const proxima = $(celula).next("td");
+    const texto2 = textoDoNo($, proxima.get(0));
+    if (texto2) valor = texto2;
+  });
+  return valor;
+}
 
-  const $ = cheerio.load(html);
+/**
+ * Acha a tabela cuja linha de cabeçalho contém `rotuloCabecalho` e devolve
+ * a ÚLTIMA linha de dados dela (a mais recente, no caso da tabela de
+ * despachos/publicações) como um mapa rótulo→valor, pareado por posição
+ * de coluna. Usado tanto pra lista de resultado da busca (achar
+ * "Situação", 1 linha só) quanto pra tabela "Publicações" da página de
+ * detalhe (achar "RPI", pode ter várias linhas).
+ *
+ * Cada candidata a tabela é escaneada com as linhas restritas a ela mesma
+ * (via `closest("table")`), não ao documento inteiro — o HTML do INPI tem
+ * tabelas de tooltip aninhadas dentro de células (ex.: a tabela de
+ * Classificação de Produtos tem um tooltip com outra tabela dentro de
+ * cada célula), e sem essa checagem as linhas da tabela errada vazavam
+ * pro resultado.
+ */
+function extrairUltimaLinhaDaTabela($: cheerio.CheerioAPI, rotuloCabecalho: string): Map<string, string> | null {
+  let resultado: Map<string, string> | null = null;
+
+  $("table").each((_, tabela) => {
+    if (resultado) return;
+
+    const linhas = $(tabela)
+      .find("tr")
+      .filter((_, tr) => $(tr).closest("table").is(tabela))
+      .toArray();
+    const textosPorLinha = linhas.map((tr) =>
+      $(tr)
+        .find("td, th")
+        .toArray()
+        .map((celula) => textoDoNo($, celula))
+    );
+
+    const indiceCabecalho = textosPorLinha.findIndex((textos) => textos.includes(rotuloCabecalho));
+    if (indiceCabecalho === -1) return;
+    const cabecalho = textosPorLinha[indiceCabecalho];
+
+    let ultimaLinha: string[] | undefined;
+    for (let i = indiceCabecalho + 1; i < textosPorLinha.length; i++) {
+      const linha = textosPorLinha[i];
+      if (linha.length < cabecalho.length) continue; // linha de estrutura diferente na mesma tabela
+      if (linha.every((valor) => !valor)) break; // linha vazia = fim dos dados
+      ultimaLinha = linha;
+    }
+    if (!ultimaLinha) return;
+
+    const mapa = new Map<string, string>();
+    cabecalho.forEach((rotulo, i) => {
+      if (rotulo) mapa.set(rotulo, ultimaLinha![i] ?? "");
+    });
+    resultado = mapa;
+  });
+
+  return resultado;
+}
+
+function extrairRodape($: cheerio.CheerioAPI): { numeroRpi: string | null; dadosAtualizadosAte: string | null } {
   const textoCompleto = $("body").text();
-
   const revistaMatch = textoCompleto.match(/N[ºo°]\s*da Revista:\s*(\S+)/i);
   const atualizadoMatch = textoCompleto.match(/Dados atualizados\s+at[ée]\s*(\d{2}\/\d{2}\/\d{4})/i);
-  const numeroRpi = revistaMatch?.[1]?.trim() || null;
-  const dadosAtualizadosAte = paraDataIso(atualizadoMatch?.[1]);
+  return {
+    numeroRpi: revistaMatch?.[1]?.trim() || null,
+    dadosAtualizadosAte: paraDataIso(atualizadoMatch?.[1]),
+  };
+}
 
-  const linha = extrairLinhaResultado($);
-  if (linha) {
-    const situacao = linha.get("Situação") || linha.get("Situacao") || null;
-    return {
-      tipo: "encontrado",
-      situacao,
-      // A tabela de resultado não mostra código/data de despacho
-      // individual (só a situação atual e a data de prioridade/depósito,
-      // que não é despacho) — pra isso seria preciso abrir a página de
-      // detalhe do processo (link "Action=detail&CodPedido=..." na
-      // própria linha), não implementado ainda.
-      despachoCodigo: null,
-      despachoDescricao: situacao,
-      despachoData: null,
-      numeroRpi,
-      dadosAtualizadosAte,
-    };
-  }
+/**
+ * Parser da página de DETALHE (após seguir o link "Action=detail" do
+ * resultado da busca) — validado contra uma consulta real de marca.
+ * Situação/Marca/Apresentação/Natureza vêm do bloco de topo
+ * (rótulo/valor em `<td>` irmãs); Titular, da tabela "Titulares"; o
+ * despacho mais recente, da tabela "Publicações" (colunas RPI, Data RPI,
+ * Despacho).
+ */
+function parsePaginaDetalhe($: cheerio.CheerioAPI): ResultadoConsultaInpi | null {
+  const situacao = extrairRotuloEmTd($, "Situação") ?? extrairRotuloEmTd($, "Situacao");
+  if (!situacao) return null;
 
-  // Fallback pro formato "rótulo em <b> seguido do valor como texto" —
-  // não confirmado contra nenhuma resposta real até agora (toda consulta
-  // testada devolveu tabela), mantido por segurança caso patente/desenho
-  // usem um formato diferente de marca.
-  const campos = extrairCamposRotulados($);
-  const situacao = campos.get("Situação") ?? campos.get("Situacao") ?? null;
-  const despachoDescricao = campos.get("Despacho") ?? campos.get("Último Despacho") ?? null;
-  const despachoCodigo = campos.get("Código do Despacho") ?? campos.get("Cod. Despacho") ?? null;
-  const despachoData = paraDataIso(campos.get("Data do Despacho") ?? campos.get("Data"));
+  const nome = extrairRotuloEmTd($, "Marca") ?? extrairRotuloEmTd($, "Título") ?? extrairRotuloEmTd($, "Titulo");
+  const apresentacao = extrairRotuloEmTd($, "Apresentação") ?? extrairRotuloEmTd($, "Apresentacao");
+  const natureza = extrairRotuloEmTd($, "Natureza");
 
-  if (!situacao && !despachoDescricao) {
-    return { tipo: "nao_reconhecido" };
-  }
+  const linhaTitular = extrairUltimaLinhaDaTabela($, "Nome");
+  const titular = linhaTitular?.get("Nome") ?? null;
+
+  const linhaClasse = extrairUltimaLinhaDaTabela($, "Classe de Nice");
+  const classe = linhaClasse?.get("Classe de Nice") ?? null;
+
+  const linhaDespacho = extrairUltimaLinhaDaTabela($, "RPI");
+  const despachoDescricao = linhaDespacho?.get("Despacho") || null;
+  const despachoData = paraDataIso(linhaDespacho?.get("Data RPI"));
+
+  const { numeroRpi, dadosAtualizadosAte } = extrairRodape($);
 
   return {
     tipo: "encontrado",
+    nome,
     situacao,
-    despachoCodigo,
+    titular,
+    apresentacao,
+    natureza,
+    classe,
     despachoDescricao,
     despachoData,
+    numeroRpi: linhaDespacho?.get("RPI") || numeroRpi,
+    dadosAtualizadosAte,
+  };
+}
+
+/**
+ * Parser da página de LISTA de resultado da busca (fallback, usado
+ * quando não achamos um link de detalhe pra seguir — ex.: patente/desenho
+ * ainda não confirmados, ou marca sem link por algum motivo). Só tem a
+ * situação atual, sem histórico de despacho.
+ */
+function parsePaginaLista($: cheerio.CheerioAPI): ResultadoConsultaInpi | null {
+  const linha = extrairUltimaLinhaDaTabela($, "Situação") ?? extrairUltimaLinhaDaTabela($, "Situacao");
+  if (!linha) return null;
+
+  const situacao = linha.get("Situação") || linha.get("Situacao") || null;
+  const { numeroRpi, dadosAtualizadosAte } = extrairRodape($);
+
+  return {
+    tipo: "encontrado",
+    nome: linha.get("Marca") || linha.get("Título") || null,
+    situacao,
+    titular: linha.get("Titular") || null,
+    apresentacao: null,
+    natureza: null,
+    classe: linha.get("Classe") || null,
+    despachoDescricao: situacao,
+    despachoData: null,
     numeroRpi,
     dadosAtualizadosAte,
   };
@@ -236,20 +320,19 @@ export async function consultarProcesso({
   numeroProcesso: string;
   tipo: TipoProcessoInpi;
 }): Promise<ResultadoConsultaInpi> {
-  const resposta = await fetchComTimeout(SERVLET_POR_TIPO[tipo], {
-    method: "POST",
-    headers: {
-      "User-Agent": USER_AGENT,
-      "Content-Type": "application/x-www-form-urlencoded",
-      Cookie: cookie,
-    },
-    body: corpoDaConsulta(tipo, numeroProcesso),
-  });
+  const htmlLista = await buscarHtml(SERVLET_POR_TIPO[tipo], cookie, corpoDaConsulta(tipo, numeroProcesso));
 
-  // O site responde em ISO-8859-1 — resposta.text() assumiria UTF-8 e
-  // estragaria acentuação, o que quebraria os regexes de rótulo acima.
-  const buffer = await resposta.arrayBuffer();
-  const html = new TextDecoder("iso-8859-1").decode(buffer);
+  if (PADRAO_NAO_ENCONTRADO.test(htmlLista)) {
+    return { tipo: "nao_encontrado" };
+  }
 
-  return parseResultado(html);
+  const $lista = cheerio.load(htmlLista);
+  const linkDetalhe = $lista("a[href*='Action=detail']").attr("href");
+
+  const $detalhe = linkDetalhe
+    ? cheerio.load(await buscarHtml(new URL(linkDetalhe, SERVLET_POR_TIPO[tipo]).toString(), cookie))
+    : null;
+
+  const resultado = ($detalhe && parsePaginaDetalhe($detalhe)) ?? parsePaginaLista($lista);
+  return resultado ?? { tipo: "nao_reconhecido" };
 }
