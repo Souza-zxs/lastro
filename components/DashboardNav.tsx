@@ -44,7 +44,12 @@ export function DashboardNav({ usuario }: { usuario: Usuario }) {
         <div className="flex min-w-0 items-center gap-2 sm:gap-8">
           {/* Menu mobile: os mesmos links de "nav" abaixo ficam escondidos
               em telas pequenas (sm:flex) sem isso, sem nenhum jeito de
-              navegar entre Painel/Alertas/INPI pelo celular. */}
+              navegar entre Painel/Alertas/INPI pelo celular.
+              DropdownMenuLinkItem usa href direto (não render={<Link/>}):
+              aninhar o <Link> do Next aqui causava uma race intermitente
+              entre o prefetch/router dele e o menu, que às vezes engolia
+              o clique sem navegar — href puro é uma navegação de verdade
+              do navegador, sem essa race. */}
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -61,7 +66,7 @@ export function DashboardNav({ usuario }: { usuario: Usuario }) {
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               {itensNav.map((item) => (
-                <DropdownMenuLinkItem key={item.href} render={<Link href={item.href} />}>
+                <DropdownMenuLinkItem key={item.href} href={item.href}>
                   <item.icon className="size-4" />
                   {item.label}
                 </DropdownMenuLinkItem>
@@ -121,16 +126,12 @@ export function DashboardNav({ usuario }: { usuario: Usuario }) {
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuLinkItem render={<Link href="/dashboard" />}>
+              <DropdownMenuLinkItem href="/dashboard">
                 <User className="size-4" />
                 Meu painel
               </DropdownMenuLinkItem>
-              <DropdownMenuLinkItem render={<Link href="/dashboard/perfil" />}>
-                Perfil
-              </DropdownMenuLinkItem>
-              <DropdownMenuLinkItem render={<Link href="/precos" />}>
-                Gerenciar plano
-              </DropdownMenuLinkItem>
+              <DropdownMenuLinkItem href="/dashboard/perfil">Perfil</DropdownMenuLinkItem>
+              <DropdownMenuLinkItem href="/precos">Gerenciar plano</DropdownMenuLinkItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => logout()}>
                 <LogOut className="size-4" />

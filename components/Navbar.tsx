@@ -26,7 +26,12 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           {/* Menu mobile: os mesmos links de "nav" abaixo (e "Entrar")
               ficam escondidos em telas pequenas, sem isso não tinha jeito
-              de navegar pelo celular além de "Criar conta". */}
+              de navegar pelo celular além de "Criar conta".
+              DropdownMenuLinkItem usa href direto (não render={<Link/>}):
+              aninhar o <Link> do Next aqui causava uma race intermitente
+              entre o prefetch/router dele e o menu, que às vezes engolia
+              o clique sem navegar — href puro é uma navegação de verdade
+              do navegador, sem essa race. */}
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -37,12 +42,12 @@ export function Navbar() {
             />
             <DropdownMenuContent align="start" className="w-56">
               {links.map((link) => (
-                <DropdownMenuLinkItem key={link.href} render={<Link href={link.href} />}>
+                <DropdownMenuLinkItem key={link.href} href={link.href}>
                   {link.label}
                 </DropdownMenuLinkItem>
               ))}
               <DropdownMenuSeparator />
-              <DropdownMenuLinkItem render={<Link href="/login" />}>Entrar</DropdownMenuLinkItem>
+              <DropdownMenuLinkItem href="/login">Entrar</DropdownMenuLinkItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
