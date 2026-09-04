@@ -68,6 +68,11 @@ export default async function PerfilPage() {
         <Link href="/precos" className={cn(buttonVariants({ variant: "outline" }))}>
           {plano ? "Gerenciar plano" : "Ver planos"}
         </Link>
+        {usuario.is_admin && (
+          <Link href="/admin" className={cn(buttonVariants({ variant: "outline" }))}>
+            Painel admin
+          </Link>
+        )}
         <form action={logout}>
           <Button type="submit" variant="ghost" className="gap-1.5 text-ink-muted">
             <LogOut className="size-4" />

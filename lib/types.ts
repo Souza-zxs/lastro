@@ -31,6 +31,34 @@ export interface Usuario {
   plano_ciclo: string | null;
   plano_processos_bonus: number;
   plano_ativado_em: string | null;
+  is_admin: boolean;
+}
+
+export type StatusPedido = "pendente" | "pago" | "cancelado";
+
+export interface Pedido {
+  id: string;
+  user_id: string;
+  pacote_id: string;
+  quantidade_creditos: number;
+  valor_centavos: number;
+  asaas_payment_id: string | null;
+  status: StatusPedido;
+  created_at: string;
+  pago_em: string | null;
+}
+
+export interface GreennWebhookEvento {
+  id: string;
+  venda_id: string;
+  evento: string;
+  status: string;
+  produto_id: string | null;
+  produto_nome: string | null;
+  email_cliente: string | null;
+  processado: boolean;
+  erro: string | null;
+  recebido_em: string;
 }
 
 export type StatusAlerta = "novo" | "revisado" | "ignorado" | "em_disputa" | "resolvido";

@@ -132,6 +132,9 @@ export function DashboardNav({ usuario }: { usuario: Usuario }) {
               </DropdownMenuLinkItem>
               <DropdownMenuLinkItem href="/dashboard/perfil">Perfil</DropdownMenuLinkItem>
               <DropdownMenuLinkItem href="/precos">Gerenciar plano</DropdownMenuLinkItem>
+              {usuario.is_admin && (
+                <DropdownMenuLinkItem href="/admin">Painel admin</DropdownMenuLinkItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => logout()}>
                 <LogOut className="size-4" />

@@ -21,6 +21,13 @@ export function formatBytes(bytes: number): string {
   return `${mb.toFixed(1)} MB`;
 }
 
+export function formatCentavos(centavos: number): string {
+  return (centavos / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
 export function truncateHash(hash: string, lead = 10, trail = 8): string {
   if (hash.length <= lead + trail) return hash;
   return `${hash.slice(0, lead)}…${hash.slice(-trail)}`;
