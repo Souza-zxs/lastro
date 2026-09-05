@@ -5,35 +5,11 @@ import { ComoFuncionaDiagram } from "@/components/ComoFuncionaDiagram";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { registroDemo } from "@/lib/demo-data";
+import { buscarConteudo, valorConteudo } from "@/lib/conteudo";
+
+export const dynamic = "force-dynamic";
 
 const heroRegistro = registroDemo;
-
-const passos = [
-  {
-    numero: "01",
-    titulo: "Envie a imagem",
-    texto:
-      "Faça upload do arquivo final — foto, ilustração ou peça de design. Fica só com você; usamos apenas para gerar a prova.",
-  },
-  {
-    numero: "02",
-    titulo: "Geramos o hash e o carimbo de tempo",
-    texto:
-      "Calculamos o SHA-256 do arquivo e registramos data e hora do envio. Esse par é a evidência de anterioridade.",
-  },
-  {
-    numero: "03",
-    titulo: "Emitimos o certificado",
-    texto:
-      "Um documento com seus dados, o hash, o carimbo e um QR code de verificação, pronto para baixar ou anexar a um processo.",
-  },
-  {
-    numero: "04",
-    titulo: "Qualquer pessoa pode conferir",
-    texto:
-      "Compartilhe o código de verificação. Quem receber confere a autenticidade numa página pública, sem precisar de conta.",
-  },
-];
 
 const publicos = [
   "Fotógrafos",
@@ -42,7 +18,17 @@ const publicos = [
   "Estúdios criativos",
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const mapa = await buscarConteudo();
+  const c = (chave: string) => valorConteudo(mapa, chave);
+
+  const passos = [
+    { numero: "01", titulo: c("landing.passo1.titulo"), texto: c("landing.passo1.texto") },
+    { numero: "02", titulo: c("landing.passo2.titulo"), texto: c("landing.passo2.texto") },
+    { numero: "03", titulo: c("landing.passo3.titulo"), texto: c("landing.passo3.texto") },
+    { numero: "04", titulo: c("landing.passo4.titulo"), texto: c("landing.passo4.texto") },
+  ];
+
   return (
     <>
       <section className="relative overflow-hidden bg-paper">
@@ -50,15 +36,13 @@ export default function LandingPage() {
         <div className="relative mx-auto grid max-w-6xl gap-16 px-6 py-20 sm:py-28 lg:grid-cols-[1.05fr_1fr] lg:items-center">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.25em] text-seal">
-              Prova de anterioridade para imagens
+              {c("landing.hero.eyebrow")}
             </p>
             <h1 className="mt-4 text-4xl leading-[1.08] text-ink sm:text-5xl lg:text-[3.25rem]">
-              Registre a autoria da sua imagem antes que alguém duvide dela.
+              {c("landing.hero.titulo")}
             </h1>
             <p className="mt-6 max-w-lg text-lg leading-relaxed text-ink-muted">
-              Revollution Lastro gera um carimbo de tempo e um certificado verificável
-              para cada imagem que você registra — sua evidência de que a
-              obra já existia, com o seu nome, numa data específica.
+              {c("landing.hero.subtitulo")}
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
@@ -118,7 +102,7 @@ export default function LandingPage() {
               Como funciona
             </p>
             <h2 className="mt-3 text-3xl text-ink sm:text-4xl">
-              Do arquivo ao certificado, em quatro etapas.
+              {c("landing.comoFunciona.titulo")}
             </h2>
           </div>
           <ComoFuncionaDiagram className="mt-16 hidden lg:block" />
@@ -148,12 +132,9 @@ export default function LandingPage() {
                 Para quem é
               </p>
               <h2 className="mt-3 text-3xl text-ink sm:text-4xl">
-                Feito para quem vive de criar imagens.
+                {c("landing.paraQuem.titulo")}
               </h2>
-              <p className="mt-4 max-w-md text-ink-muted">
-                Se o seu trabalho pode ser copiado com um clique direito,
-                vale ter uma prova de quando ele nasceu.
-              </p>
+              <p className="mt-4 max-w-md text-ink-muted">{c("landing.paraQuem.subtitulo")}</p>
               <ul className="mt-6 flex flex-wrap gap-2">
                 {publicos.map((p) => (
                   <li
@@ -197,10 +178,8 @@ export default function LandingPage() {
       <section className="border-t border-line bg-ledger">
         <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-6 py-16 sm:flex-row sm:items-center">
           <div>
-            <h2 className="text-3xl text-paper">Pronto para registrar sua primeira imagem?</h2>
-            <p className="mt-2 text-paper/70">
-              Leva menos de dois minutos, e o primeiro certificado é por nossa conta.
-            </p>
+            <h2 className="text-3xl text-paper">{c("landing.cta.titulo")}</h2>
+            <p className="mt-2 text-paper/70">{c("landing.cta.subtitulo")}</p>
           </div>
           <Link
             href="/cadastro"

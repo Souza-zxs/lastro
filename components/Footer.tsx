@@ -1,18 +1,19 @@
 import Link from "next/link";
 import { Scale } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { buscarConteudo, valorConteudo } from "@/lib/conteudo";
 
-export function Footer() {
+export async function Footer() {
+  const mapa = await buscarConteudo();
+  const c = (chave: string) => valorConteudo(mapa, chave);
+
   return (
     <footer className="border-t border-line/80 bg-paper">
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-sm">
             <Logo />
-            <p className="mt-3 text-sm leading-relaxed text-ink-muted">
-              Carimbo de tempo e certificado de anterioridade para
-              fotógrafos, ilustradores e designers.
-            </p>
+            <p className="mt-3 text-sm leading-relaxed text-ink-muted">{c("footer.descricao")}</p>
           </div>
           <div className="grid grid-cols-2 gap-8 text-sm sm:flex sm:gap-16">
             <div className="flex flex-col gap-2.5">
@@ -37,16 +38,8 @@ export function Footer() {
               responsável pelo produto.
             </p>
           </div>
-          <p className="text-xs leading-relaxed text-ink-muted">
-            Este produto não substitui registro oficial de direitos autorais
-            junto a órgãos competentes e não constitui aconselhamento
-            jurídico. O certificado emitido é uma prova de anterioridade
-            baseada em carimbo de tempo, útil como evidência complementar em
-            eventuais disputas.
-          </p>
-          <p className="mt-3 text-xs text-ink-muted/80">
-            © 2026 Revollution Lastro. Todos os direitos reservados.
-          </p>
+          <p className="text-xs leading-relaxed text-ink-muted">{c("footer.disclaimer")}</p>
+          <p className="mt-3 text-xs text-ink-muted/80">{c("footer.copyright")}</p>
         </div>
       </div>
     </footer>

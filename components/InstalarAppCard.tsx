@@ -17,7 +17,13 @@ function lerDispensado(): boolean {
   }
 }
 
-export function InstalarAppCard() {
+export function InstalarAppCard({
+  titulo = "Tenha o Revollution Lastro sempre à mão",
+  descricao = "Instale o app no seu celular para acessar seus registros, alertas e processos do INPI direto da tela inicial, sem precisar abrir o navegador.",
+}: {
+  titulo?: string;
+  descricao?: string;
+}) {
   const instalado = useAppInstalado();
   const [dispensado, setDispensado] = useState(lerDispensado);
 
@@ -47,11 +53,8 @@ export function InstalarAppCard() {
       <div className="flex items-start gap-3 pr-6">
         <Smartphone className="mt-0.5 size-5 shrink-0 text-ledger" />
         <div>
-          <p className="font-medium text-ink">Tenha o Revollution Lastro sempre à mão</p>
-          <p className="mt-1 text-sm text-ink-muted">
-            Instale o app no seu celular para acessar seus registros, alertas e processos do INPI
-            direto da tela inicial, sem precisar abrir o navegador.
-          </p>
+          <p className="font-medium text-ink">{titulo}</p>
+          <p className="mt-1 text-sm text-ink-muted">{descricao}</p>
         </div>
       </div>
 

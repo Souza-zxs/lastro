@@ -27,18 +27,21 @@ function decidirAbrirNaPrimeiraVez(): boolean {
 }
 
 /** Mostra uma vez por sessão de navegador, na primeira visita ao painel após o login. */
-export function BemVindoInstalarDialog() {
+export function BemVindoInstalarDialog({
+  titulo = "Leve o Revollution Lastro com você",
+  descricao = "Instale o app no seu celular para acessar seus certificados, alertas e processos do INPI rapidinho, direto da tela inicial.",
+}: {
+  titulo?: string;
+  descricao?: string;
+}) {
   const [aberto, setAberto] = useState(decidirAbrirNaPrimeiraVez);
 
   return (
     <Dialog open={aberto} onOpenChange={setAberto}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Leve o Revollution Lastro com você</DialogTitle>
-          <DialogDescription>
-            Instale o app no seu celular para acessar seus certificados, alertas e processos do
-            INPI rapidinho, direto da tela inicial.
-          </DialogDescription>
+          <DialogTitle>{titulo}</DialogTitle>
+          <DialogDescription>{descricao}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <InstallAppButton className="w-full sm:w-auto" />

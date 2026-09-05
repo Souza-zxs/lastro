@@ -4,36 +4,9 @@ import { PlanoCards } from "@/components/PlanoCards";
 import { cn } from "@/lib/utils";
 import { PACOTES } from "@/lib/pacotes";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { buscarConteudo, valorConteudo } from "@/lib/conteudo";
 
 export const dynamic = "force-dynamic";
-
-const faq = [
-  {
-    pergunta: "O que é um crédito?",
-    resposta:
-      "Cada crédito registra uma imagem: gera o hash SHA-256, o carimbo de tempo e o certificado correspondente. Créditos não expiram.",
-  },
-  {
-    pergunta: "O certificado tem validade jurídica de registro de direitos autorais?",
-    resposta:
-      "Não. O certificado é uma prova de anterioridade baseada em carimbo de tempo — útil como evidência complementar, mas não substitui o registro oficial junto a órgãos como a Biblioteca Nacional.",
-  },
-  {
-    pergunta: "Posso registrar a mesma imagem mais de uma vez?",
-    resposta:
-      "Sim, mas cada registro consome um crédito e gera um novo certificado com nova data.",
-  },
-  {
-    pergunta: "Existe plano de assinatura?",
-    resposta:
-      "Sim — os planos Essencial, Estúdio e Portfólio incluem uma cota de registros de imagem e de processos do INPI acompanhados por mês, em ciclos mensal, semestral ou anual. A assinatura ainda está sendo habilitada; por enquanto o checkout funciona pelos pacotes avulsos abaixo.",
-  },
-  {
-    pergunta: "O que acontece se eu usar todos os créditos do mês na assinatura?",
-    resposta:
-      "Dá pra comprar recarga avulsa de créditos a qualquer momento, sem esperar o próximo ciclo — são os mesmos pacotes vendidos hoje, listados abaixo dos planos.",
-  },
-];
 
 export default async function PrecosPage() {
   const supabase = await getSupabaseServerClient();
@@ -41,17 +14,19 @@ export default async function PrecosPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const mapa = await buscarConteudo();
+  const c = (chave: string) => valorConteudo(mapa, chave);
+  const faq = [0, 1, 2, 3, 4].map((i) => ({
+    pergunta: c(`precos.faq.${i}.pergunta`),
+    resposta: c(`precos.faq.${i}.resposta`),
+  }));
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-20">
       <div className="max-w-2xl">
         <p className="font-mono text-xs uppercase tracking-[0.25em] text-seal">Preços</p>
-        <h1 className="mt-3 text-4xl text-ink sm:text-5xl">
-          Um plano para provar e acompanhar.
-        </h1>
-        <p className="mt-4 text-lg text-ink-muted">
-          Cada plano inclui registros de imagem e acompanhamento de processos do INPI por mês.
-          Escolha o ciclo de cobrança que fizer mais sentido pra você.
-        </p>
+        <h1 className="mt-3 text-4xl text-ink sm:text-5xl">{c("precos.header.titulo")}</h1>
+        <p className="mt-4 text-lg text-ink-muted">{c("precos.header.subtitulo")}</p>
       </div>
 
       <div className="mt-14">
@@ -59,11 +34,8 @@ export default async function PrecosPage() {
       </div>
 
       <div className="mt-24">
-        <h2 className="text-2xl text-ink">Recarga de créditos avulsa</h2>
-        <p className="mt-2 max-w-2xl text-ink-muted">
-          Precisou de mais registros do que o incluso no plano deste mês? Compre créditos avulsos
-          a qualquer momento, sem esperar o próximo ciclo — eles não expiram.
-        </p>
+        <h2 className="text-2xl text-ink">{c("precos.recarga.titulo")}</h2>
+        <p className="mt-2 max-w-2xl text-ink-muted">{c("precos.recarga.subtitulo")}</p>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           {PACOTES.map((pacote) => (

@@ -7,17 +7,20 @@ import { BemVindoInstalarDialog } from "@/components/BemVindoInstalarDialog";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { buscarConteudo, valorConteudo } from "@/lib/conteudo";
 import type { Registro, Usuario } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const supabase = await getSupabaseServerClient();
-  const [{ data: registros }, { data: usuarioData }] = await Promise.all([
+  const [{ data: registros }, { data: usuarioData }, mapa] = await Promise.all([
     // RLS já restringe às linhas do usuário autenticado.
     supabase.from("registros").select("*").order("data_registro", { ascending: false }),
     supabase.from("usuarios").select("*").single(),
+    buscarConteudo(),
   ]);
+  const c = (chave: string) => valorConteudo(mapa, chave);
 
   // Mesma checagem de app/(dashboard)/layout.tsx: se essa consulta falhar
   // (rede instável, timeout pontual do Supabase) sem o guard aqui o
@@ -31,12 +34,15 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
-      <BemVindoInstalarDialog />
+      <BemVindoInstalarDialog
+        titulo={c("dashboard.boasVindas.titulo")}
+        descricao={c("dashboard.boasVindas.descricao")}
+      />
 
       <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
         <div>
           <p className="text-sm text-ink-muted">Olá, {usuario.nome.split(" ")[0]}</p>
-          <h1 className="mt-1 text-3xl text-ink">Seus registros</h1>
+          <h1 className="mt-1 text-3xl text-ink">{c("dashboard.home.titulo")}</h1>
         </div>
         <Link
           href="/dashboard/novo"
@@ -48,7 +54,10 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-6">
-        <InstalarAppCard />
+        <InstalarAppCard
+          titulo={c("dashboard.instalarApp.titulo")}
+          descricao={c("dashboard.instalarApp.descricao")}
+        />
       </div>
 
       <dl className="mt-8 grid grid-cols-3 gap-4 border-y border-line py-5 sm:max-w-md">

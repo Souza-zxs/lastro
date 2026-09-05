@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Users, ReceiptText, LogOut, Menu } from "lucide-react";
+import { LayoutGrid, Users, ReceiptText, FileText, LogOut, Menu } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +18,7 @@ const ITENS_NAV = [
   { href: "/admin", label: "Visão geral", icon: LayoutGrid },
   { href: "/admin/usuarios", label: "Usuários", icon: Users },
   { href: "/admin/assinaturas", label: "Assinaturas e compras", icon: ReceiptText },
+  { href: "/admin/conteudo", label: "Textos do site", icon: FileText },
 ];
 
 export function AdminNav({ nome }: { nome: string }) {
