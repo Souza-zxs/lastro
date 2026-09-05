@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { gerarPdfCertificado } from "@/lib/certificado/gerarPdf";
 import { assinarPdfCertificado } from "@/lib/certificado/assinarPdf";
+import { carimbarTempoPdf } from "@/lib/certificado/carimboTempo";
 import { origemAtual } from "@/lib/origem";
 import type { Registro } from "@/lib/types";
 
@@ -25,7 +26,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const urlVerificacao = `${origem.replace(/\/$/, "")}/verificar/${registro.codigo_verificacao}`;
 
   const pdfSemAssinar = await gerarPdfCertificado(registro, urlVerificacao);
-  const pdf = await assinarPdfCertificado(pdfSemAssinar);
+  const pdfAssinado = await assinarPdfCertificado(pdfSemAssinar);
+  const pdf = await carimbarTempoPdf(pdfAssinado);
 
   return new NextResponse(new Uint8Array(pdf), {
     status: 200,

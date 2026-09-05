@@ -84,7 +84,10 @@ export async function gerarPdfCertificado(registro: Registro, urlVerificacao: st
           Este certificado atesta a existência do arquivo indicado, com o hash acima, na data e
           hora do registro. Não constitui registro oficial de direitos autorais nem
           aconselhamento jurídico. Este PDF traz uma assinatura eletrônica própria da plataforma
-          — verifique no painel de assinaturas do seu leitor de PDF (ex.: Adobe Acrobat Reader).
+          e um carimbo de tempo RFC 3161 — verifique no painel de assinaturas do seu leitor de
+          PDF (ex.: Adobe Acrobat Reader). Nenhum dos dois é emitido por uma autoridade
+          certificadora credenciada (ICP-Brasil), então não têm presunção legal automática nem
+          confiança nativa no Adobe Reader.
         </Text>
       </Page>
     </Document>
