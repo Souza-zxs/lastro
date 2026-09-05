@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getSupabaseAdminClient } from "@/lib/supabase/server";
 import { formatData } from "@/lib/format";
 import { getPlano, CICLOS } from "@/lib/planos";
@@ -28,6 +29,7 @@ export default async function AdminUsuariosPage() {
               <th className="px-4 py-3 font-medium">Plano</th>
               <th className="px-4 py-3 font-medium">Créditos</th>
               <th className="px-4 py-3 font-medium">Membro desde</th>
+              <th className="px-4 py-3 font-medium"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -58,6 +60,11 @@ export default async function AdminUsuariosPage() {
                   </td>
                   <td className="px-4 py-3 text-ink-muted">{usuario.creditos_disponiveis}</td>
                   <td className="px-4 py-3 text-ink-muted">{formatData(usuario.membro_desde)}</td>
+                  <td className="px-4 py-3 text-right">
+                    <Link href={`/admin/usuarios/${usuario.id}`} className="text-ledger hover:underline">
+                      Gerenciar
+                    </Link>
+                  </td>
                 </tr>
               );
             })}
