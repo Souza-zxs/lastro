@@ -2,7 +2,8 @@ import { Check } from "lucide-react";
 import { ComprarPacoteButton } from "@/components/ComprarPacoteButton";
 import { PlanoCards } from "@/components/PlanoCards";
 import { cn } from "@/lib/utils";
-import { PACOTES } from "@/lib/pacotes";
+import { resolverPacotes } from "@/lib/pacotes";
+import { PLANOS } from "@/lib/planos";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { buscarConteudo, valorConteudo } from "@/lib/conteudo";
 
@@ -14,11 +15,16 @@ export default async function PrecosPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const mapa = await buscarConteudo();
+  const [mapa, pacotes] = await Promise.all([buscarConteudo(), resolverPacotes()]);
   const c = (chave: string) => valorConteudo(mapa, chave);
   const faq = [0, 1, 2, 3, 4].map((i) => ({
     pergunta: c(`precos.faq.${i}.pergunta`),
     resposta: c(`precos.faq.${i}.resposta`),
+  }));
+  const planos = PLANOS.map((plano) => ({
+    ...plano,
+    nome: c(`planos.${plano.id}.nome`),
+    beneficios: plano.beneficios.map((_, i) => c(`planos.${plano.id}.beneficio.${i}`)),
   }));
 
   return (
@@ -30,7 +36,7 @@ export default async function PrecosPage() {
       </div>
 
       <div className="mt-14">
-        <PlanoCards logado={Boolean(user)} />
+        <PlanoCards planos={planos} logado={Boolean(user)} />
       </div>
 
       <div className="mt-24">
@@ -38,7 +44,7 @@ export default async function PrecosPage() {
         <p className="mt-2 max-w-2xl text-ink-muted">{c("precos.recarga.subtitulo")}</p>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
-          {PACOTES.map((pacote) => (
+          {pacotes.map((pacote) => (
             <div
               key={pacote.id}
               className={cn(

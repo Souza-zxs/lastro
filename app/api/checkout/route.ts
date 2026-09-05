@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { criarCobranca, criarOuBuscarCliente } from "@/lib/asaas";
-import { getPacote } from "@/lib/pacotes";
+import { resolverPacote } from "@/lib/pacotes";
 import { getSupabaseAdminClient, getSupabaseServerClient } from "@/lib/supabase/server";
 
 const DOCUMENTO_PATTERN = /^\d{11}$|^\d{14}$/;
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   const pacoteId = typeof body?.pacoteId === "string" ? body.pacoteId : undefined;
   const documentoInformado =
     typeof body?.documento === "string" ? body.documento.replace(/\D/g, "") : undefined;
-  const pacote = pacoteId ? getPacote(pacoteId) : undefined;
+  const pacote = pacoteId ? await resolverPacote(pacoteId) : undefined;
 
   if (!pacote) {
     return NextResponse.json({ error: "Pacote inválido." }, { status: 400 });

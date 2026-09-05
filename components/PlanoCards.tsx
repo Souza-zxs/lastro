@@ -6,7 +6,7 @@ import { Check } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { CICLOS, PLANOS, type CicloCobranca } from "@/lib/planos";
+import { CICLOS, type CicloCobranca, type Plano } from "@/lib/planos";
 
 // O botão de assinar leva direto pro checkout hospedado da Greenn
 // (payfast.greenn.com.br) de cada plano+ciclo — não passa pelo backend do
@@ -15,7 +15,7 @@ import { CICLOS, PLANOS, type CicloCobranca } from "@/lib/planos";
 // Greenn, ainda não implementado). Alguns desses links podem estar
 // marcados como "produto não disponível para pagamento" do lado da
 // Greenn até o cadastro do produto ser concluído lá.
-export function PlanoCards({ logado }: { logado: boolean }) {
+export function PlanoCards({ planos, logado }: { planos: Plano[]; logado: boolean }) {
   const [ciclo, setCiclo] = useState<CicloCobranca>("mensal");
   const cicloAtual = CICLOS.find((c) => c.id === ciclo) ?? CICLOS[0];
 
@@ -32,7 +32,7 @@ export function PlanoCards({ logado }: { logado: boolean }) {
       </Tabs>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
-        {PLANOS.map((plano) => {
+        {planos.map((plano) => {
           const preco = plano.precoPorCiclo[ciclo];
           return (
             <div

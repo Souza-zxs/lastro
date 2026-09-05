@@ -1,19 +1,14 @@
-import { buscarConteudo, valorConteudo, CAMPOS_CONTEUDO } from "@/lib/conteudo";
-import { salvarConteudoAdmin } from "@/lib/actions/conteudo";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+import { CAMPOS_CONTEUDO } from "@/lib/conteudo";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminConteudoPage() {
-  const mapa = await buscarConteudo();
-
+export default function AdminConteudoPage() {
   const secoes = Array.from(new Set(CAMPOS_CONTEUDO.map((c) => c.secao))).map((secao) => ({
     secao,
     secaoLabel: CAMPOS_CONTEUDO.find((c) => c.secao === secao)!.secaoLabel,
-    campos: CAMPOS_CONTEUDO.filter((c) => c.secao === secao),
+    total: CAMPOS_CONTEUDO.filter((c) => c.secao === secao).length,
   }));
 
   return (
@@ -21,33 +16,23 @@ export default async function AdminConteudoPage() {
       <p className="font-mono text-xs uppercase tracking-[0.25em] text-seal">Painel admin</p>
       <h1 className="mt-2 text-3xl text-ink">Textos do site</h1>
       <p className="mt-1 text-sm text-ink-muted">
-        Edite os textos que aparecem pros visitantes e usuários, sem precisar mexer no código. Um
-        campo em branco volta a usar o texto padrão.
+        Escolha uma página para editar os textos dela. Um campo em branco volta a usar o texto
+        padrão.
       </p>
 
-      <div className="mt-10 space-y-12">
-        {secoes.map(({ secao, secaoLabel, campos }) => (
-          <section key={secao}>
-            <h2 className="border-b border-line pb-2 text-lg text-ink">{secaoLabel}</h2>
-            <form action={salvarConteudoAdmin} className="mt-5 space-y-5">
-              {campos.map((campo) => (
-                <div key={campo.chave} className="space-y-1.5">
-                  <Label htmlFor={campo.chave}>{campo.label}</Label>
-                  {campo.tipo === "textarea" ? (
-                    <Textarea
-                      id={campo.chave}
-                      name={campo.chave}
-                      defaultValue={valorConteudo(mapa, campo.chave)}
-                      rows={3}
-                    />
-                  ) : (
-                    <Input id={campo.chave} name={campo.chave} defaultValue={valorConteudo(mapa, campo.chave)} />
-                  )}
-                </div>
-              ))}
-              <Button type="submit">Salvar {secaoLabel.toLowerCase()}</Button>
-            </form>
-          </section>
+      <div className="mt-8 divide-y divide-line border border-line">
+        {secoes.map(({ secao, secaoLabel, total }) => (
+          <Link
+            key={secao}
+            href={`/admin/conteudo/${secao}`}
+            className="flex items-center justify-between gap-4 bg-paper-certificate/60 px-5 py-4 transition-colors hover:bg-paper-certificate"
+          >
+            <div>
+              <p className="font-medium text-ink">{secaoLabel}</p>
+              <p className="mt-0.5 text-xs text-ink-muted">{total} campo(s) editável(is)</p>
+            </div>
+            <ChevronRight className="size-4 shrink-0 text-ink-muted" />
+          </Link>
         ))}
       </div>
     </div>

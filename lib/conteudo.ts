@@ -298,6 +298,144 @@ export const CAMPOS_CONTEUDO: CampoConteudo[] = [
       "Instale o app no seu celular para acessar seus certificados, alertas e processos do INPI rapidinho, direto da tela inicial.",
     tipo: "textarea",
   },
+
+  // Planos de assinatura (nome + benefícios — preço fica de fora de
+  // propósito, ver nota em app/(admin)/admin/conteudo/[secao]/page.tsx)
+  ...(
+    [
+      { id: "essencial", nome: "Essencial", beneficios: [
+        "8 registros de imagem por mês",
+        "Acompanhamento de até 2 processos do INPI",
+        "Certificado em PDF por registro",
+        "Alertas de uso indevido e de atualização do INPI por e-mail",
+      ] },
+      { id: "estudio", nome: "Estúdio", beneficios: [
+        "20 registros de imagem por mês",
+        "Acompanhamento de até 5 processos do INPI",
+        "Certificado em PDF por registro",
+        "Alertas de uso indevido e de atualização do INPI por e-mail",
+        "Suporte prioritário por e-mail",
+      ] },
+      { id: "portfolio", nome: "Portfólio", beneficios: [
+        "50 registros de imagem por mês",
+        "Acompanhamento de até 15 processos do INPI",
+        "Certificado em PDF por registro",
+        "Alertas de uso indevido e de atualização do INPI por e-mail",
+        "Suporte prioritário por e-mail",
+      ] },
+    ] satisfies { id: string; nome: string; beneficios: string[] }[]
+  ).flatMap((plano): CampoConteudo[] => [
+    {
+      chave: `planos.${plano.id}.nome`,
+      secao: "planos",
+      secaoLabel: "Planos de assinatura",
+      label: `Plano ${plano.nome} — nome`,
+      padrao: plano.nome,
+      tipo: "texto",
+    },
+    ...plano.beneficios.map(
+      (beneficio, i): CampoConteudo => ({
+        chave: `planos.${plano.id}.beneficio.${i}`,
+        secao: "planos",
+        secaoLabel: "Planos de assinatura",
+        label: `Plano ${plano.nome} — benefício ${i + 1}`,
+        padrao: beneficio,
+        tipo: "texto",
+      })
+    ),
+  ]),
+
+  // Pacotes de créditos avulsos (nome, preço, créditos e benefícios — o
+  // preço aqui É a fonte de verdade da cobrança real, ver
+  // lib/pacotes.ts#resolverPacotes)
+  ...(
+    [
+      {
+        id: "avulso",
+        nome: "Avulso",
+        creditos: 5,
+        precoReais: "39",
+        porImagem: "R$ 7,80 por imagem",
+        beneficios: [
+          "5 registros de imagem",
+          "Certificado em PDF por registro",
+          "QR code de verificação pública",
+          "Créditos sem prazo de validade",
+        ],
+      },
+      {
+        id: "estudio",
+        nome: "Estúdio",
+        creditos: 20,
+        precoReais: "129",
+        porImagem: "R$ 6,45 por imagem",
+        beneficios: [
+          "20 registros de imagem",
+          "Certificado em PDF por registro",
+          "QR code de verificação pública",
+          "Créditos sem prazo de validade",
+          "Suporte prioritário por e-mail",
+        ],
+      },
+      {
+        id: "portfolio",
+        nome: "Portfólio",
+        creditos: 50,
+        precoReais: "279",
+        porImagem: "R$ 5,58 por imagem",
+        beneficios: [
+          "50 registros de imagem",
+          "Certificado em PDF por registro",
+          "QR code de verificação pública",
+          "Créditos sem prazo de validade",
+          "Suporte prioritário por e-mail",
+        ],
+      },
+    ] satisfies { id: string; nome: string; creditos: number; precoReais: string; porImagem: string; beneficios: string[] }[]
+  ).flatMap((pacote): CampoConteudo[] => [
+    {
+      chave: `pacotes.${pacote.id}.nome`,
+      secao: "pacotes",
+      secaoLabel: "Pacotes de créditos",
+      label: `Pacote ${pacote.nome} — nome`,
+      padrao: pacote.nome,
+      tipo: "texto",
+    },
+    {
+      chave: `pacotes.${pacote.id}.creditos`,
+      secao: "pacotes",
+      secaoLabel: "Pacotes de créditos",
+      label: `Pacote ${pacote.nome} — quantidade de créditos`,
+      padrao: String(pacote.creditos),
+      tipo: "texto",
+    },
+    {
+      chave: `pacotes.${pacote.id}.precoReais`,
+      secao: "pacotes",
+      secaoLabel: "Pacotes de créditos",
+      label: `Pacote ${pacote.nome} — preço em R$ (ex.: 39 ou 39,90)`,
+      padrao: pacote.precoReais,
+      tipo: "texto",
+    },
+    {
+      chave: `pacotes.${pacote.id}.porImagem`,
+      secao: "pacotes",
+      secaoLabel: "Pacotes de créditos",
+      label: `Pacote ${pacote.nome} — preço por imagem (texto)`,
+      padrao: pacote.porImagem,
+      tipo: "texto",
+    },
+    ...pacote.beneficios.map(
+      (beneficio, i): CampoConteudo => ({
+        chave: `pacotes.${pacote.id}.beneficio.${i}`,
+        secao: "pacotes",
+        secaoLabel: "Pacotes de créditos",
+        label: `Pacote ${pacote.nome} — benefício ${i + 1}`,
+        padrao: beneficio,
+        tipo: "texto",
+      })
+    ),
+  ]),
 ];
 
 /** Busca todas as sobrescritas salvas pelo admin. Chave sem linha aqui = usa o padrão do registro acima. */
