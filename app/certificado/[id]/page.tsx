@@ -23,7 +23,7 @@ export default async function CertificadoPage({
 
   return (
     <div className="bg-paper-texture min-h-screen bg-paper py-8 print:bg-white print:py-0">
-      <CertificadoToolbar voltarHref={`/dashboard/registro/${registro.id}`} />
+      <CertificadoToolbar voltarHref={`/dashboard/registro/${registro.id}`} registroId={registro.id} />
       <div className="mx-auto mt-6 max-w-2xl px-6 print:mt-0 print:max-w-none print:px-0">
         <CertificadoPreview registro={registro} origem={origem} className="print:shadow-none" />
       </div>

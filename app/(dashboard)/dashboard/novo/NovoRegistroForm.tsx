@@ -115,10 +115,13 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
         <CertificadoPreview registro={resultado} className="mt-8" />
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Button size="lg" className="gap-2" onClick={() => window.print()}>
+          <a
+            href={`/api/certificado/${resultado.id}/pdf`}
+            className={cn(buttonVariants({ size: "lg" }), "gap-2")}
+          >
             <Download className="size-4" />
             Baixar certificado (PDF)
-          </Button>
+          </a>
           <Button size="lg" variant="outline" className="gap-2" onClick={reiniciar}>
             <RotateCcw className="size-4" />
             Registrar outra imagem
@@ -225,9 +228,9 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
           </div>
 
           <div className="mt-2 border border-line bg-paper-certificate/60 p-4 text-xs leading-relaxed text-ink-muted">
-            Ao registrar, geramos um hash SHA-256 do arquivo e um carimbo de
-            tempo com a data e hora atuais. Esses dados compõem o seu
-            certificado de anterioridade.
+            Ao registrar, geramos um hash SHA-256 do arquivo, um carimbo de
+            tempo com a data e hora atuais, e assinamos eletronicamente o PDF
+            do certificado. Esses dados compõem a sua prova de anterioridade.
           </div>
 
           <label className="flex items-start gap-2.5 text-xs leading-relaxed text-ink-muted">
