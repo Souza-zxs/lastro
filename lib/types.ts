@@ -7,6 +7,8 @@ export interface Registro {
   categoria: string;
   autor: string;
   email_autor: string;
+  autor_documento: string | null;
+  autor_endereco: string | null;
   data_registro: string;
   hash_sha256: string;
   hash_perceptual: string | null;
@@ -16,6 +18,29 @@ export interface Registro {
   tamanho_bytes: number;
   status: StatusRegistro;
   ultimo_scan_em: string | null;
+  declaracao_autoria: boolean;
+  arquivo_original_path: string | null;
+}
+
+/**
+ * Formato devolvido por verificar_registro (RPC pública, sem autenticação)
+ * — deliberadamente sem email_autor/autor_documento/autor_endereco: a
+ * página de verificação é acessível por qualquer visitante anônimo, então
+ * não pode expor CPF/CNPJ, endereço nem e-mail do titular.
+ */
+export interface RegistroPublico {
+  id: string;
+  codigo_verificacao: string;
+  titulo: string;
+  categoria: string;
+  autor: string;
+  data_registro: string;
+  hash_sha256: string;
+  imagem_thumb: string;
+  formato: string;
+  dimensoes: string;
+  tamanho_bytes: number;
+  status: StatusRegistro;
 }
 
 export interface Usuario {
@@ -23,6 +48,7 @@ export interface Usuario {
   nome: string;
   email: string;
   documento: string;
+  endereco: string | null;
   plano: string;
   creditos_disponiveis: number;
   membro_desde: string;

@@ -59,7 +59,7 @@ export const CAMPOS_CONTEUDO: CampoConteudo[] = [
     secaoLabel: "Página inicial",
     label: "Passo 1 — texto",
     padrao:
-      "Faça upload do arquivo final — foto, ilustração ou peça de design. Fica só com você; usamos apenas para gerar a prova.",
+      "Faça upload do arquivo final — foto, ilustração ou peça de design. Guardamos o original com segurança, só pra você, como parte da prova.",
     tipo: "textarea",
   },
   {

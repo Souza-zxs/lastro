@@ -4,7 +4,7 @@ import { CertificadoPreview } from "@/components/CertificadoPreview";
 import { buttonVariants } from "@/components/ui/button";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { origemAtual } from "@/lib/origem";
-import type { Registro } from "@/lib/types";
+import type { RegistroPublico } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +21,7 @@ export default async function VerificarCodigoPage({
   // definer), que só devolve o registro que casa com o código informado.
   const { data: registro } = (await supabase
     .rpc("verificar_registro", { p_codigo: codigoNormalizado })
-    .maybeSingle()) as { data: Registro | null };
+    .maybeSingle()) as { data: RegistroPublico | null };
   const origem = await origemAtual();
 
   return (

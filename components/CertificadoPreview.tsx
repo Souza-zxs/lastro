@@ -3,10 +3,10 @@ import { QRCodeSVG } from "qrcode.react";
 import { SealMark } from "@/components/SealMark";
 import { formatDataHora } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { Registro } from "@/lib/types";
+import type { Registro, RegistroPublico } from "@/lib/types";
 
 interface CertificadoPreviewProps {
-  registro: Registro;
+  registro: Registro | RegistroPublico;
   className?: string;
   compact?: boolean;
   /**
@@ -75,6 +75,12 @@ export function CertificadoPreview({
             <dt className="text-xs uppercase tracking-wide text-ink-muted">Autor(a)</dt>
             <dd className="mt-0.5 text-ink">{registro.autor}</dd>
           </div>
+          {"autor_documento" in registro && registro.autor_documento && (
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-ink-muted">CPF/CNPJ</dt>
+              <dd className="mt-0.5 text-ink">{registro.autor_documento}</dd>
+            </div>
+          )}
           <div>
             <dt className="text-xs uppercase tracking-wide text-ink-muted">Categoria</dt>
             <dd className="mt-0.5 text-ink">{registro.categoria}</dd>
@@ -87,6 +93,12 @@ export function CertificadoPreview({
             <dt className="text-xs uppercase tracking-wide text-ink-muted">Código de verificação</dt>
             <dd className="mt-0.5 font-mono text-ink">{registro.codigo_verificacao}</dd>
           </div>
+          {"autor_endereco" in registro && registro.autor_endereco && (
+            <div className="col-span-2">
+              <dt className="text-xs uppercase tracking-wide text-ink-muted">Endereço do(a) titular</dt>
+              <dd className="mt-0.5 text-ink">{registro.autor_endereco}</dd>
+            </div>
+          )}
         </dl>
       </div>
 

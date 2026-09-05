@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { THUMBNAIL_BUCKET } from "@/lib/constants";
+import { ORIGINAL_BUCKET, THUMBNAIL_BUCKET } from "@/lib/constants";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { Registro } from "@/lib/types";
 
@@ -26,6 +26,8 @@ export async function POST(request: Request) {
   const dimensoes = formData.get("dimensoes");
   const tamanhoBytesRaw = formData.get("tamanho_bytes");
   const thumbnail = formData.get("thumbnail");
+  const declaracaoAutoria = formData.get("declaracao_autoria");
+  const arquivoOriginal = formData.get("arquivo_original");
 
   if (
     typeof titulo !== "string" ||
@@ -39,7 +41,9 @@ export async function POST(request: Request) {
     typeof dimensoes !== "string" ||
     typeof tamanhoBytesRaw !== "string" ||
     !Number.isFinite(Number(tamanhoBytesRaw)) ||
-    !(thumbnail instanceof Blob)
+    !(thumbnail instanceof Blob) ||
+    declaracaoAutoria !== "true" ||
+    !(arquivoOriginal instanceof Blob)
   ) {
     return NextResponse.json({ error: "Dados de registro inválidos." }, { status: 400 });
   }
@@ -57,6 +61,18 @@ export async function POST(request: Request) {
     data: { publicUrl },
   } = supabase.storage.from(THUMBNAIL_BUCKET).getPublicUrl(thumbnailPath);
 
+  const extensaoOriginal = formato.toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+  const arquivoOriginalPath = `${user.id}/${crypto.randomUUID()}.${extensaoOriginal}`;
+  const { error: uploadOriginalError } = await supabase.storage
+    .from(ORIGINAL_BUCKET)
+    .upload(arquivoOriginalPath, arquivoOriginal, {
+      contentType: arquivoOriginal.type || "application/octet-stream",
+    });
+
+  if (uploadOriginalError) {
+    return NextResponse.json({ error: "Falha ao enviar o arquivo original." }, { status: 500 });
+  }
+
   const { data, error } = await supabase
     .rpc("criar_registro", {
       p_titulo: titulo,
@@ -66,6 +82,8 @@ export async function POST(request: Request) {
       p_formato: formato,
       p_dimensoes: dimensoes,
       p_tamanho_bytes: Number(tamanhoBytesRaw),
+      p_declaracao_autoria: true,
+      p_arquivo_original_path: arquivoOriginalPath,
       p_hash_perceptual: hashPerceptual ? (hashPerceptual as string).toLowerCase() : null,
     })
     .single();
@@ -78,6 +96,12 @@ export async function POST(request: Request) {
           codigo: "creditos_insuficientes",
         },
         { status: 402 }
+      );
+    }
+    if (error.message.includes("dados_titular_incompletos")) {
+      return NextResponse.json(
+        { error: "Complete seu CPF/CNPJ e endereço antes de registrar.", codigo: "dados_titular_incompletos" },
+        { status: 422 }
       );
     }
     return NextResponse.json({ error: "Falha ao criar o registro." }, { status: 500 });

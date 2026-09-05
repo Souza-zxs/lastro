@@ -30,6 +30,7 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
   const [arrastando, setArrastando] = useState(false);
   const [titulo, setTitulo] = useState("");
   const [categoria, setCategoria] = useState("Fotografia");
+  const [declaracaoAceita, setDeclaracaoAceita] = useState(false);
   const [resultado, setResultado] = useState<Registro | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [semCreditos, setSemCreditos] = useState(false);
@@ -45,7 +46,7 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!arquivo || !preview || !titulo) return;
+    if (!arquivo || !preview || !titulo || !declaracaoAceita) return;
 
     setErro(null);
     setSemCreditos(false);
@@ -67,6 +68,8 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
       formData.set("dimensoes", `${thumb.width} × ${thumb.height} px`);
       formData.set("tamanho_bytes", String(arquivo.size));
       formData.set("thumbnail", thumb.blob, "thumbnail.jpg");
+      formData.set("declaracao_autoria", "true");
+      formData.set("arquivo_original", arquivo, arquivo.name);
 
       const response = await fetch("/api/registros", { method: "POST", body: formData });
       const data = await response.json();
@@ -92,6 +95,7 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
     setPreview(null);
     setTitulo("");
     setCategoria("Fotografia");
+    setDeclaracaoAceita(false);
     setResultado(null);
     setErro(null);
   }
@@ -183,7 +187,7 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
               <div className="flex flex-col items-center gap-2 px-6 text-center">
                 <UploadCloud className="size-7 text-ink-muted" />
                 <p className="text-sm font-medium text-ink">Arraste a imagem ou clique para selecionar</p>
-                <p className="text-xs text-ink-muted">JPG, PNG ou WEBP — o arquivo não sai do seu navegador</p>
+                <p className="text-xs text-ink-muted">JPG, PNG ou WEBP</p>
               </div>
             )}
           </div>
@@ -226,6 +230,20 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
             certificado de anterioridade.
           </div>
 
+          <label className="flex items-start gap-2.5 text-xs leading-relaxed text-ink-muted">
+            <input
+              type="checkbox"
+              checked={declaracaoAceita}
+              onChange={(e) => setDeclaracaoAceita(e.target.checked)}
+              className="mt-0.5 size-4 shrink-0 accent-ledger"
+              required
+            />
+            Declaro, nos termos da Lei nº 9.610/1998 (Lei de Direitos Autorais), que sou autor(a)
+            e/ou legítimo(a) titular dos direitos sobre a imagem ora registrada,
+            responsabilizando-me pela veracidade das informações fornecidas e pela legitimidade
+            desta declaração.
+          </label>
+
           {erro && (
             <div className="flex items-start gap-2.5 border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
               <AlertCircle className="mt-0.5 size-4 shrink-0" />
@@ -243,7 +261,7 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
           <Button
             type="submit"
             size="lg"
-            disabled={!arquivo || !titulo || etapa === "processando"}
+            disabled={!arquivo || !titulo || !declaracaoAceita || etapa === "processando"}
             className="mt-2 gap-2"
           >
             {etapa === "processando" ? (

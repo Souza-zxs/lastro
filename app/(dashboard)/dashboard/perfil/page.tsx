@@ -41,6 +41,12 @@ export default async function PerfilPage() {
             <dd className="mt-0.5 text-ink">{usuario.documento}</dd>
           </div>
         )}
+        {usuario.endereco && (
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-ink-muted">Endereço</dt>
+            <dd className="mt-0.5 text-ink">{usuario.endereco}</dd>
+          </div>
+        )}
         <div>
           <dt className="text-xs uppercase tracking-wide text-ink-muted">Membro desde</dt>
           <dd className="mt-0.5 text-ink">{formatData(usuario.membro_desde)}</dd>

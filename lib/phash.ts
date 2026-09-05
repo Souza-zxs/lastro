@@ -1,7 +1,7 @@
 /**
  * Hash perceptual (dHash — difference hash) calculado no navegador, do
- * mesmo jeito que o SHA-256 em lib/hash.ts: o arquivo original nunca sai
- * do dispositivo do usuário, só o hash.
+ * mesmo jeito que o SHA-256 em lib/hash.ts — calculado localmente antes
+ * do upload, sem depender de round-trip com o servidor.
  *
  * Diferente do SHA-256 (muda completamente se um único byte mudar), o
  * dHash é estável a recompressão/redimensionamento/pequenos recortes —

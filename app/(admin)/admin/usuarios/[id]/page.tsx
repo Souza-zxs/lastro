@@ -47,6 +47,10 @@ export default async function AdminUsuarioDetalhePage({ params }: { params: Prom
           <dd className="mt-0.5 text-ink">{usuario.documento ?? "—"}</dd>
         </div>
         <div>
+          <dt className="text-xs uppercase tracking-wide text-ink-muted">Endereço</dt>
+          <dd className="mt-0.5 text-ink">{usuario.endereco ?? "—"}</dd>
+        </div>
+        <div>
           <dt className="text-xs uppercase tracking-wide text-ink-muted">Membro desde</dt>
           <dd className="mt-0.5 text-ink">{formatData(usuario.membro_desde)}</dd>
         </div>
