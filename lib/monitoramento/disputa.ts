@@ -7,7 +7,7 @@ interface DadosNoticia {
   hashSha256: string;
   urlEncontrada: string;
 }
-
+// estou ficando louco
 /**
  * Gera um modelo de notificação de remoção de conteúdo (estilo takedown)
  * que o usuário pode copiar e enviar ao host/plataforma onde a cópia foi
