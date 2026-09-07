@@ -86,11 +86,9 @@ export async function gerarPdfCertificado(registro: Registro, urlVerificacao: st
           identificação do titular e a data de submissão, constituindo elemento de prova de
           anterioridade e de titularidade declarada, podendo ser utilizada como meio de prova em
           procedimentos administrativos ou judiciais, nos termos da legislação aplicável, e
-          constitui registro oficial de direitos autorais. Não constitui aconselhamento jurídico. A
-          assinatura eletrônica e o carimbo de tempo RFC 3161 deste PDF são próprios da
-          plataforma — verificáveis no painel de assinaturas do seu leitor de PDF — mas não são
-          emitidos por autoridade certificadora credenciada (ICP-Brasil), portanto não têm
-          presunção legal automática nem confiança nativa no Adobe Reader.
+          constitui registro oficial de direitos autorais. Não constitui aconselhamento jurídico.
+          Este PDF traz assinatura eletrônica e carimbo de tempo RFC 3161 próprios da plataforma,
+          verificáveis no painel de assinaturas do seu leitor de PDF.
         </Text>
       </Page>
     </Document>
