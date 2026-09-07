@@ -93,6 +93,12 @@ export function CertificadoPreview({
             <dt className="text-xs uppercase tracking-wide text-ink-muted">Código de verificação</dt>
             <dd className="mt-0.5 font-mono text-ink">{registro.codigo_verificacao}</dd>
           </div>
+          {"arquivo_original_nome" in registro && registro.arquivo_original_nome && (
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-ink-muted">Nome do arquivo</dt>
+              <dd className="mt-0.5 text-ink">{registro.arquivo_original_nome}</dd>
+            </div>
+          )}
           {"autor_endereco" in registro && registro.autor_endereco && (
             <div className="col-span-2">
               <dt className="text-xs uppercase tracking-wide text-ink-muted">Endereço do(a) titular</dt>
@@ -130,6 +136,10 @@ export function CertificadoPreview({
           </div>
         </div>
       </div>
+
+      <p className="relative mt-4 text-right text-[0.65rem] text-ink-muted/70">
+        © Revollution Marcas e Patentes
+      </p>
     </div>
   );
 }

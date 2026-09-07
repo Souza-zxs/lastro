@@ -28,6 +28,7 @@ export async function POST(request: Request) {
   const thumbnail = formData.get("thumbnail");
   const declaracaoAutoria = formData.get("declaracao_autoria");
   const arquivoOriginalPath = formData.get("arquivo_original_path");
+  const arquivoOriginalNome = formData.get("arquivo_original_nome");
 
   if (
     typeof titulo !== "string" ||
@@ -73,6 +74,7 @@ export async function POST(request: Request) {
       p_tamanho_bytes: Number(tamanhoBytesRaw),
       p_declaracao_autoria: true,
       p_arquivo_original_path: arquivoOriginalPath,
+      p_arquivo_original_nome: typeof arquivoOriginalNome === "string" ? arquivoOriginalNome.slice(0, 255) : null,
       p_hash_perceptual: hashPerceptual ? (hashPerceptual as string).toLowerCase() : null,
     })
     .single();

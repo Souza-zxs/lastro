@@ -23,4 +23,5 @@ export const registroDemo: Registro = {
   ultimo_scan_em: null,
   declaracao_autoria: true,
   arquivo_original_path: null,
+  arquivo_original_nome: "retrato-urbano-final.jpg",
 };

@@ -16,10 +16,40 @@ const styles = StyleSheet.create({
   valor: { fontSize: 11 },
   hashLabel: { fontSize: 8, color: "#666", textTransform: "uppercase", letterSpacing: 0.5, marginTop: 10, marginBottom: 3 },
   hash: { fontSize: 9, fontFamily: "Courier" },
-  qrRow: { flexDirection: "row", alignItems: "center", marginTop: 24, gap: 14, borderTopWidth: 1, borderTopColor: "#ddd", paddingTop: 16 },
+  explicacao: {
+    marginTop: 16,
+    fontSize: 9,
+    color: "#444",
+    lineHeight: 1.5,
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+    paddingTop: 14,
+  },
+  conformidadeTitulo: { fontSize: 9, color: "#8a1538", textTransform: "uppercase", letterSpacing: 0.5, marginTop: 14, marginBottom: 6 },
+  conformidadeItem: { fontSize: 9, color: "#444", marginBottom: 3 },
+  qrRow: { flexDirection: "row", alignItems: "center", marginTop: 16, gap: 14, borderTopWidth: 1, borderTopColor: "#ddd", paddingTop: 16 },
   qrTexto: { fontSize: 8, color: "#666", maxWidth: 340, lineHeight: 1.4 },
-  rodape: { marginTop: 20, fontSize: 8, color: "#666", lineHeight: 1.5 },
+  avisoTitulo: { fontSize: 8, color: "#8a1538", textTransform: "uppercase", letterSpacing: 0.5, marginTop: 16, marginBottom: 4 },
+  aviso: { fontSize: 8, color: "#666", lineHeight: 1.5, marginBottom: 6 },
+  rodape: { marginTop: 12, fontSize: 8, color: "#666", lineHeight: 1.5 },
+  assinaturaBloco: {
+    marginTop: 18,
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+    paddingTop: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  assinaturaTexto: { fontSize: 8, color: "#8a1538" },
+  copyright: { fontSize: 8, color: "#999" },
 });
+
+const CONFORMIDADE_LEGAL = [
+  "Lei nº 9.610/1998 (Lei de Direitos Autorais), art. 18 — a proteção autoral independe de registro.",
+  "Convenção de Berna para a Proteção das Obras Literárias e Artísticas (Decreto nº 75.699/1975).",
+  "Código de Processo Civil, art. 369 (Lei nº 13.105/2015) — meios legais e moralmente legítimos de prova.",
+  "Lei nº 13.709/2018 (LGPD) — tratamento dos dados pessoais do titular.",
+];
 
 async function gerarQrCodeDataUrl(url: string): Promise<string> {
   return toDataURL(url, { margin: 1, width: 240 });
@@ -27,6 +57,7 @@ async function gerarQrCodeDataUrl(url: string): Promise<string> {
 
 export async function gerarPdfCertificado(registro: Registro, urlVerificacao: string): Promise<Buffer> {
   const qrDataUrl = await gerarQrCodeDataUrl(urlVerificacao);
+  const emitidoEm = new Date();
 
   const documento = (
     <Document title={`Certificado — ${registro.titulo}`} author="Revollution Lastro">
@@ -41,7 +72,7 @@ export async function gerarPdfCertificado(registro: Registro, urlVerificacao: st
             <Text style={styles.valor}>{registro.titulo}</Text>
           </View>
           <View style={styles.campo}>
-            <Text style={styles.label}>Autor(a)</Text>
+            <Text style={styles.label}>Autor(a) / Titular dos direitos</Text>
             <Text style={styles.valor}>{registro.autor}</Text>
           </View>
           {registro.autor_documento && (
@@ -59,9 +90,15 @@ export async function gerarPdfCertificado(registro: Registro, urlVerificacao: st
             <Text style={styles.valor}>{formatDataHora(registro.data_registro)}</Text>
           </View>
           <View style={styles.campoLargo}>
-            <Text style={styles.label}>Código de verificação</Text>
+            <Text style={styles.label}>Código do certificado</Text>
             <Text style={styles.valor}>{registro.codigo_verificacao}</Text>
           </View>
+          {registro.arquivo_original_nome && (
+            <View style={styles.campo}>
+              <Text style={styles.label}>Nome do arquivo</Text>
+              <Text style={styles.valor}>{registro.arquivo_original_nome}</Text>
+            </View>
+          )}
           {registro.autor_endereco && (
             <View style={styles.campoLargo}>
               <Text style={styles.label}>Endereço do(a) titular</Text>
@@ -73,6 +110,24 @@ export async function gerarPdfCertificado(registro: Registro, urlVerificacao: st
         <Text style={styles.hashLabel}>Hash SHA-256</Text>
         <Text style={styles.hash}>{registro.hash_sha256}</Text>
 
+        <Text style={styles.explicacao}>
+          Este certificado comprova, por meio de hash SHA-256, carimbo de tempo (padrão RFC
+          3161) e assinatura eletrônica, que a pessoa acima identificada declarou-se autora
+          e/ou titular dos direitos sobre a obra mencionada neste documento, na data e hora do
+          registro indicadas. Diferente de outras plataformas do gênero, a Revollution Lastro
+          preserva o arquivo original enviado — não apenas o seu hash — permitindo reconferência
+          posterior em caso de disputa.
+        </Text>
+
+        <Text style={styles.conformidadeTitulo}>Conformidade legal</Text>
+        <View>
+          {CONFORMIDADE_LEGAL.map((item, i) => (
+            <Text key={i} style={styles.conformidadeItem}>
+              • {item}
+            </Text>
+          ))}
+        </View>
+
         <View style={styles.qrRow}>
           <Image src={qrDataUrl} style={{ width: 84, height: 84 }} />
           <Text style={styles.qrTexto}>
@@ -80,16 +135,28 @@ export async function gerarPdfCertificado(registro: Registro, urlVerificacao: st
           </Text>
         </View>
 
-        <Text style={styles.rodape}>
+        <Text style={styles.avisoTitulo}>Avisos</Text>
+        <Text style={styles.aviso}>
+          Quaisquer inconsistências nos dados constantes desta declaração são de exclusiva
+          responsabilidade do declarante, nos termos da declaração de autoria firmada no ato do
+          registro.
+        </Text>
+        <Text style={styles.aviso}>
           A proteção autoral é assegurada pela Lei nº 9.610/1998, independentemente de registro,
           conforme dispõe o art. 18. Esta certificação registra o conteúdo apresentado, a
           identificação do titular e a data de submissão, constituindo elemento de prova de
           anterioridade e de titularidade declarada, podendo ser utilizada como meio de prova em
           procedimentos administrativos ou judiciais, nos termos da legislação aplicável, e
           constitui registro oficial de direitos autorais. Não constitui aconselhamento jurídico.
-          Este PDF traz assinatura eletrônica e carimbo de tempo RFC 3161 próprios da plataforma,
-          verificáveis no painel de assinaturas do seu leitor de PDF.
         </Text>
+
+        <View style={styles.assinaturaBloco}>
+          <View>
+            <Text style={styles.assinaturaTexto}>Documento assinado eletronicamente</Text>
+            <Text style={styles.rodape}>{formatDataHora(emitidoEm.toISOString())}</Text>
+          </View>
+          <Text style={styles.copyright}>© Revollution Marcas e Patentes</Text>
+        </View>
       </Page>
     </Document>
   );

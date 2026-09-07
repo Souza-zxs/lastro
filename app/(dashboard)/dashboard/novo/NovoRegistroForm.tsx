@@ -97,6 +97,7 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
       formData.set("thumbnail", thumb.blob, "thumbnail.jpg");
       formData.set("declaracao_autoria", "true");
       formData.set("arquivo_original_path", arquivoOriginalPath);
+      formData.set("arquivo_original_nome", arquivo.name);
 
       const response = await fetch("/api/registros", { method: "POST", body: formData });
       const data = await response.json();

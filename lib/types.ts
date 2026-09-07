@@ -20,6 +20,7 @@ export interface Registro {
   ultimo_scan_em: string | null;
   declaracao_autoria: boolean;
   arquivo_original_path: string | null;
+  arquivo_original_nome: string | null;
 }
 
 /**
