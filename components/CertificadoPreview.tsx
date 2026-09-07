@@ -112,7 +112,7 @@ export function CertificadoPreview({
       <div className="relative mt-7 flex flex-col items-start justify-between gap-5 border-t border-line pt-6 sm:flex-row sm:items-end">
         <p className="max-w-xs flex-1 text-xs leading-relaxed text-ink-muted">
           Este certificado atesta a existência do arquivo acima, com o hash
-          indicado, na data e hora do registro. Não constitui registro
+          indicado, na data e hora do registro, e constitui registro
           oficial de direitos autorais.
         </p>
         <div className="flex shrink-0 items-center gap-3 self-center sm:self-auto">

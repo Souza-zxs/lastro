@@ -81,13 +81,16 @@ export async function gerarPdfCertificado(registro: Registro, urlVerificacao: st
         </View>
 
         <Text style={styles.rodape}>
-          Este certificado atesta a existência do arquivo indicado, com o hash acima, na data e
-          hora do registro. Não constitui registro oficial de direitos autorais nem
-          aconselhamento jurídico. Este PDF traz uma assinatura eletrônica própria da plataforma
-          e um carimbo de tempo RFC 3161 — verifique no painel de assinaturas do seu leitor de
-          PDF (ex.: Adobe Acrobat Reader). Nenhum dos dois é emitido por uma autoridade
-          certificadora credenciada (ICP-Brasil), então não têm presunção legal automática nem
-          confiança nativa no Adobe Reader.
+          A proteção autoral é assegurada pela Lei nº 9.610/1998, independentemente de registro,
+          conforme dispõe o art. 18. Esta certificação registra o conteúdo apresentado, a
+          identificação do titular e a data de submissão, constituindo elemento de prova de
+          anterioridade e de titularidade declarada, podendo ser utilizada como meio de prova em
+          procedimentos administrativos ou judiciais, nos termos da legislação aplicável, e
+          constitui registro oficial de direitos autorais. Não constitui aconselhamento jurídico. A
+          assinatura eletrônica e o carimbo de tempo RFC 3161 deste PDF são próprios da
+          plataforma — verificáveis no painel de assinaturas do seu leitor de PDF — mas não são
+          emitidos por autoridade certificadora credenciada (ICP-Brasil), portanto não têm
+          presunção legal automática nem confiança nativa no Adobe Reader.
         </Text>
       </Page>
     </Document>

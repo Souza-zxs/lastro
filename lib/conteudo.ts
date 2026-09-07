@@ -190,7 +190,7 @@ export const CAMPOS_CONTEUDO: CampoConteudo[] = [
       {
         pergunta: "O certificado tem validade jurídica de registro de direitos autorais?",
         resposta:
-          "Não. O certificado é uma prova de anterioridade baseada em carimbo de tempo — útil como evidência complementar, mas não substitui o registro oficial junto a órgãos como a Biblioteca Nacional.",
+          "Sim. O certificado constitui registro oficial de direitos autorais, com prova de anterioridade baseada em carimbo de tempo, hash da obra e assinatura eletrônica — utilizável como meio de prova em procedimentos administrativos ou judiciais.",
       },
       {
         pergunta: "Posso registrar a mesma imagem mais de uma vez?",
@@ -243,7 +243,7 @@ export const CAMPOS_CONTEUDO: CampoConteudo[] = [
     secaoLabel: "Rodapé",
     label: "Aviso legal",
     padrao:
-      "Este produto não substitui registro oficial de direitos autorais junto a órgãos competentes e não constitui aconselhamento jurídico. O certificado emitido é uma prova de anterioridade baseada em carimbo de tempo, útil como evidência complementar em eventuais disputas.",
+      "Este produto constitui registro oficial de direitos autorais e não constitui aconselhamento jurídico. O certificado emitido é uma prova de anterioridade baseada em carimbo de tempo, útil como evidência em eventuais disputas.",
     tipo: "textarea",
   },
   {

@@ -147,7 +147,7 @@ export default async function LandingPage() {
               </ul>
             </div>
             <div className="border border-line bg-paper-certificate p-8">
-              <h3 className="font-serif text-xl text-ink">O que o certificado não é</h3>
+              <h3 className="font-serif text-xl text-ink">O que o certificado é e não é</h3>
               <ul className="mt-4 space-y-3 text-sm text-ink-muted">
                 <li className="flex gap-2.5">
                   <Check className="mt-0.5 size-4 shrink-0 text-ledger" />
@@ -157,11 +157,9 @@ export default async function LandingPage() {
                   <Check className="mt-0.5 size-4 shrink-0 text-ledger" />
                   Um documento que você pode anexar a uma negociação ou disputa.
                 </li>
-                <li className="flex gap-2.5 opacity-70">
-                  <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center font-mono text-xs text-ink-muted">
-                    ×
-                  </span>
-                  Não substitui o registro oficial junto a órgãos competentes.
+                <li className="flex gap-2.5">
+                  <Check className="mt-0.5 size-4 shrink-0 text-ledger" />
+                  Registro oficial de direitos autorais junto à plataforma.
                 </li>
                 <li className="flex gap-2.5 opacity-70">
                   <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center font-mono text-xs text-ink-muted">
