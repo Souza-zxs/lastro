@@ -19,6 +19,8 @@ import { formatBytes } from "@/lib/format";
 import { computeSha256Hex } from "@/lib/hash";
 import { computePerceptualHashHex } from "@/lib/phash";
 import { createThumbnail } from "@/lib/thumbnail";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { ORIGINAL_BUCKET } from "@/lib/constants";
 import type { Registro } from "@/lib/types";
 
 type Etapa = "formulario" | "processando" | "concluido";
@@ -53,11 +55,36 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
     setEtapa("processando");
 
     try {
+      const supabase = getSupabaseBrowserClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setErro("Sua sessão expirou. Atualize a página e entre novamente.");
+        setEtapa("formulario");
+        return;
+      }
+
       const [hash, hashPerceptual, thumb] = await Promise.all([
         computeSha256Hex(arquivo),
         computePerceptualHashHex(arquivo),
         createThumbnail(arquivo),
       ]);
+
+      // O arquivo original vai direto do navegador pro Storage — não passa
+      // pela nossa API (Vercel limita o corpo de uma Serverless Function a
+      // ~4,5MB, e uma foto de celular passa disso fácil).
+      const extensaoOriginal = (arquivo.type.split("/")[1] || "bin").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const arquivoOriginalPath = `${user.id}/${crypto.randomUUID()}.${extensaoOriginal}`;
+      const { error: uploadOriginalError } = await supabase.storage
+        .from(ORIGINAL_BUCKET)
+        .upload(arquivoOriginalPath, arquivo, { contentType: arquivo.type || "application/octet-stream" });
+
+      if (uploadOriginalError) {
+        setErro("Não foi possível enviar o arquivo. Verifique sua conexão e tente novamente.");
+        setEtapa("formulario");
+        return;
+      }
 
       const formData = new FormData();
       formData.set("titulo", titulo);
@@ -69,7 +96,7 @@ export function NovoRegistroForm({ creditosDisponiveis }: { creditosDisponiveis:
       formData.set("tamanho_bytes", String(arquivo.size));
       formData.set("thumbnail", thumb.blob, "thumbnail.jpg");
       formData.set("declaracao_autoria", "true");
-      formData.set("arquivo_original", arquivo, arquivo.name);
+      formData.set("arquivo_original_path", arquivoOriginalPath);
 
       const response = await fetch("/api/registros", { method: "POST", body: formData });
       const data = await response.json();
