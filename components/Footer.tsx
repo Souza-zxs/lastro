@@ -39,7 +39,12 @@ export async function Footer() {
             </p>
           </div>
           <p className="text-xs leading-relaxed text-ink-muted">{c("footer.disclaimer")}</p>
-          <p className="mt-3 text-xs text-ink-muted/80">{c("footer.copyright")}</p>
+          <p className="mt-3 text-xs text-ink-muted/80">
+            {c("footer.copyright")} ·{" "}
+            <Link href="/termos" className="hover:text-ink hover:underline">
+              Termos de uso e política de privacidade
+            </Link>
+          </p>
         </div>
       </div>
     </footer>
