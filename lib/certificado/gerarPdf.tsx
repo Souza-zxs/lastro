@@ -1,46 +1,81 @@
 import "server-only";
-import { Document, Page, View, Text, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import {
+  Document,
+  Page,
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Svg,
+  Polygon,
+  Circle,
+  renderToBuffer,
+} from "@react-pdf/renderer";
 import { toDataURL } from "qrcode";
 import { formatDataHora } from "@/lib/format";
 import type { Registro } from "@/lib/types";
 
+// Cores da marca (mesmas tokens de app/globals.css).
+const CORES = {
+  ledger: "#4c0c23",
+  ledgerLight: "#63132f",
+  seal: "#cba876",
+  sealLight: "#f3ecdc",
+  paperCertificate: "#fdfbf5",
+  ink: "#241119",
+  inkMuted: "#6d5b5c",
+  line: "#ddd0cb",
+};
+
+const LARGURA = 595.28;
+
 const styles = StyleSheet.create({
-  page: { padding: 36, fontSize: 11, fontFamily: "Helvetica", color: "#1a1a1a" },
-  eyebrow: { fontSize: 9, color: "#8a1538", marginBottom: 3, textTransform: "uppercase", letterSpacing: 2 },
-  titulo: { fontSize: 20, marginBottom: 3 },
-  subtitulo: { fontSize: 9, color: "#666", marginBottom: 14, borderBottomWidth: 1, borderBottomColor: "#ddd", paddingBottom: 10 },
-  grid: { flexDirection: "row", flexWrap: "wrap" },
-  campo: { width: "50%", marginBottom: 9 },
-  campoLargo: { width: "100%", marginBottom: 9 },
-  label: { fontSize: 7.5, color: "#666", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 },
-  valor: { fontSize: 10.5 },
-  hashLabel: { fontSize: 7.5, color: "#666", textTransform: "uppercase", letterSpacing: 0.5, marginTop: 4, marginBottom: 2 },
-  hash: { fontSize: 8.5, fontFamily: "Courier" },
-  explicacao: {
+  page: { fontSize: 9.5, fontFamily: "Helvetica", color: CORES.ink },
+  corpo: { paddingHorizontal: 40, paddingBottom: 30 },
+  logoLinha: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 8 },
+  logoTexto: { fontSize: 22, fontFamily: "Times-Bold", color: CORES.ledger, letterSpacing: 0.5 },
+  subtitulo: { textAlign: "center", fontSize: 8.5, color: CORES.inkMuted, marginTop: 2, letterSpacing: 1, textTransform: "uppercase" },
+  tituloPrincipal: { textAlign: "center", fontSize: 17, fontFamily: "Helvetica-Bold", color: CORES.ink, marginTop: 16, marginBottom: 16 },
+  secaoLabel: { fontSize: 8.5, fontFamily: "Helvetica-Bold", color: CORES.ink, marginBottom: 6 },
+  linha: { fontSize: 10, marginBottom: 3 },
+  linhaMuted: { fontSize: 7, color: CORES.inkMuted, marginBottom: 8 },
+  duasColunas: { flexDirection: "row", justifyContent: "space-between", gap: 20 },
+  colunaEsquerda: { width: "48%" },
+  colunaDireita: { width: "48%" },
+  caixaHash: {
     marginTop: 10,
-    fontSize: 8.5,
-    color: "#444",
-    lineHeight: 1.4,
-    borderTopWidth: 1,
-    borderTopColor: "#ddd",
-    paddingTop: 9,
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center",
   },
-  conformidadeTitulo: { fontSize: 8.5, color: "#8a1538", textTransform: "uppercase", letterSpacing: 0.5, marginTop: 9, marginBottom: 4 },
-  conformidadeItem: { fontSize: 8.5, color: "#444", marginBottom: 2 },
-  qrRow: { flexDirection: "row", alignItems: "center", marginTop: 10, gap: 12, borderTopWidth: 1, borderTopColor: "#ddd", paddingTop: 10 },
-  qrTexto: { fontSize: 7.5, color: "#666", maxWidth: 360, lineHeight: 1.3 },
-  aviso: { fontSize: 7.5, color: "#666", lineHeight: 1.4, marginTop: 8 },
+  caixaHashConteudo: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: CORES.seal,
+    borderRadius: 4,
+    padding: 12,
+    backgroundColor: CORES.sealLight,
+  },
+  caixaHashLinha: { fontSize: 8.5, color: CORES.ink, marginBottom: 5 },
+  caixaHashDestaque: { textAlign: "center", fontSize: 8.5, fontFamily: "Helvetica-Bold", color: CORES.ledger, marginTop: 4 },
+  hashMono: { fontFamily: "Courier", fontSize: 7.5 },
+  verificarBloco: { width: 90, alignItems: "center" },
+  verificarLabel: { fontSize: 7, fontFamily: "Helvetica-Bold", color: CORES.ledger, textAlign: "center", marginBottom: 4 },
+  conformidadeTitulo: { fontSize: 8, color: CORES.ledger, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 14, marginBottom: 4 },
+  conformidadeItem: { fontSize: 7.5, color: CORES.inkMuted, marginBottom: 2 },
+  explicacao: { fontSize: 7.5, color: CORES.inkMuted, lineHeight: 1.4, marginTop: 8 },
   assinaturaBloco: {
-    marginTop: 10,
+    marginTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#ddd",
+    borderTopColor: CORES.line,
     paddingTop: 8,
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  assinaturaTexto: { fontSize: 7.5, color: "#8a1538" },
-  rodape: { fontSize: 7.5, color: "#666" },
-  copyright: { fontSize: 7.5, color: "#999" },
+  assinaturaTexto: { fontSize: 7.5, color: CORES.ledger },
+  rodapeTexto: { fontSize: 7.5, color: CORES.inkMuted },
 });
 
 const CONFORMIDADE_LEGAL = [
@@ -50,8 +85,34 @@ const CONFORMIDADE_LEGAL = [
   "Lei nº 13.709/2018 (LGPD) — tratamento dos dados pessoais do titular.",
 ];
 
+let logoBuffer: Buffer | null = null;
+function carregarLogo(): Buffer {
+  if (!logoBuffer) {
+    logoBuffer = readFileSync(path.join(process.cwd(), "public", "revollution-mark.png"));
+  }
+  return logoBuffer;
+}
+
 async function gerarQrCodeDataUrl(url: string): Promise<string> {
-  return toDataURL(url, { margin: 1, width: 240 });
+  return toDataURL(url, { margin: 0, width: 200, color: { dark: CORES.ledger } });
+}
+
+/** Faixa decorativa angular (topo ou rodapé, espelhada) — mesmo espírito do
+ * modelo de referência, com as cores da marca em vez de cinza. */
+function FaixaDecorativa({ altura, espelhada = false }: { altura: number; espelhada: boolean }) {
+  const p1 = espelhada
+    ? `0,${altura} ${LARGURA},${altura} ${LARGURA},${altura - 22} ${LARGURA * 0.42},0 0,${altura - 40}`
+    : `0,0 ${LARGURA},0 ${LARGURA},22 ${LARGURA * 0.42},${altura} 0,${altura - 40}`;
+  const p2 = espelhada
+    ? `0,${altura} ${LARGURA * 0.68},${altura} ${LARGURA * 0.3},${altura - 55} 0,${altura - 18}`
+    : `0,0 ${LARGURA * 0.68},0 ${LARGURA * 0.3},${altura - 55} 0,18`;
+
+  return (
+    <Svg width={LARGURA} height={altura} style={{ position: "absolute", top: espelhada ? undefined : 0, bottom: espelhada ? 0 : undefined, left: 0 }}>
+      <Polygon points={p1} fill={CORES.ledger} />
+      <Polygon points={p2} fill={CORES.ledgerLight} />
+    </Svg>
+  );
 }
 
 export async function gerarPdfCertificado(registro: Registro, urlVerificacao: string): Promise<Buffer> {
@@ -61,94 +122,100 @@ export async function gerarPdfCertificado(registro: Registro, urlVerificacao: st
   const documento = (
     <Document title={`Certificado — ${registro.titulo}`} author="Revollution Lastro">
       <Page size="A4" style={styles.page}>
-        <Text style={styles.eyebrow}>Certificado de registro</Text>
-        <Text style={styles.titulo}>Prova de anterioridade</Text>
-        <Text style={styles.subtitulo}>Revollution Lastro</Text>
-
-        <View style={styles.grid}>
-          <View style={styles.campoLargo}>
-            <Text style={styles.label}>Obra</Text>
-            <Text style={styles.valor}>{registro.titulo}</Text>
+        <View style={{ height: 96 }}>
+          <FaixaDecorativa altura={96} espelhada={false} />
+          <View style={{ position: "absolute", top: 0, right: 46, width: 34, height: 78 }}>
+            <Svg width={34} height={78} style={{ position: "absolute", top: 0, left: 0 }}>
+              <Polygon points="0,0 34,0 34,78 17,62 0,78" fill={CORES.seal} />
+              <Circle cx={17} cy={30} r={19} fill={CORES.paperCertificate} stroke={CORES.ledger} strokeWidth={1.5} />
+            </Svg>
+            <Image
+              src={carregarLogo()}
+              style={{ position: "absolute", top: 19, left: 6, width: 22, height: 22 }}
+            />
           </View>
-          <View style={styles.campo}>
-            <Text style={styles.label}>Autor(a) / Titular dos direitos</Text>
-            <Text style={styles.valor}>{registro.autor}</Text>
-          </View>
-          {registro.autor_documento && (
-            <View style={styles.campo}>
-              <Text style={styles.label}>CPF/CNPJ</Text>
-              <Text style={styles.valor}>{registro.autor_documento}</Text>
-            </View>
-          )}
-          <View style={styles.campo}>
-            <Text style={styles.label}>Categoria</Text>
-            <Text style={styles.valor}>{registro.categoria}</Text>
-          </View>
-          <View style={styles.campo}>
-            <Text style={styles.label}>Registrado em</Text>
-            <Text style={styles.valor}>{formatDataHora(registro.data_registro)}</Text>
-          </View>
-          <View style={styles.campoLargo}>
-            <Text style={styles.label}>Código do certificado</Text>
-            <Text style={styles.valor}>{registro.codigo_verificacao}</Text>
-          </View>
-          {registro.arquivo_original_nome && (
-            <View style={styles.campo}>
-              <Text style={styles.label}>Nome do arquivo</Text>
-              <Text style={styles.valor}>{registro.arquivo_original_nome}</Text>
-            </View>
-          )}
-          {registro.autor_endereco && (
-            <View style={styles.campoLargo}>
-              <Text style={styles.label}>Endereço do(a) titular</Text>
-              <Text style={styles.valor}>{registro.autor_endereco}</Text>
-            </View>
-          )}
         </View>
 
-        <Text style={styles.hashLabel}>Hash SHA-256</Text>
-        <Text style={styles.hash}>{registro.hash_sha256}</Text>
+        <View style={styles.corpo}>
+          <View style={styles.logoLinha}>
+            <Image src={carregarLogo()} style={{ width: 26, height: 26 }} />
+            <Text style={styles.logoTexto}>REVOLLUTION LASTRO</Text>
+          </View>
+          <Text style={styles.subtitulo}>Prova de anterioridade digital</Text>
 
-        <Text style={styles.explicacao}>
-          Este certificado comprova, por meio de hash SHA-256, carimbo de tempo (padrão RFC
-          3161) e assinatura eletrônica, que a pessoa acima identificada declarou-se autora
-          e/ou titular dos direitos sobre a obra mencionada, na data e hora do registro
-          indicadas, constituindo registro oficial de direitos autorais e elemento de prova de
-          anterioridade e titularidade declarada, utilizável em procedimentos administrativos
-          ou judiciais nos termos da legislação aplicável. Diferente de outras plataformas do
-          gênero, a Revollution Lastro preserva o arquivo original enviado — não apenas o seu
-          hash — permitindo reconferência posterior em caso de disputa. Não constitui
-          aconselhamento jurídico.
-        </Text>
+          <Text style={styles.tituloPrincipal}>Certificado de Anterioridade</Text>
 
-        <Text style={styles.conformidadeTitulo}>Conformidade legal</Text>
-        <View>
-          {CONFORMIDADE_LEGAL.map((item, i) => (
-            <Text key={i} style={styles.conformidadeItem}>
-              • {item}
-            </Text>
-          ))}
-        </View>
+          <View style={styles.duasColunas}>
+            <View style={styles.colunaEsquerda}>
+              <Text style={styles.secaoLabel}>Registrado por</Text>
+              <Text style={styles.linha}>Titular: {registro.autor}</Text>
+              {registro.autor_documento && <Text style={styles.linha}>Documento: {registro.autor_documento}</Text>}
+              <Text style={styles.linhaMuted}>(CPF, CNPJ, etc.)</Text>
+              {registro.autor_endereco && (
+                <>
+                  <Text style={[styles.linha, { marginTop: 4 }]}>Endereço: {registro.autor_endereco}</Text>
+                </>
+              )}
+            </View>
+            <View style={styles.colunaDireita}>
+              <Text style={styles.secaoLabel}>Registro</Text>
+              {registro.arquivo_original_nome && <Text style={styles.linha}>Arquivo: {registro.arquivo_original_nome}</Text>}
+              <Text style={styles.linha}>Título: {registro.titulo}</Text>
+              <Text style={styles.linha}>Categoria: {registro.categoria}</Text>
+              <Text style={[styles.linha, { marginTop: 4 }]}>Código: {registro.codigo_verificacao}</Text>
+            </View>
+          </View>
 
-        <View style={styles.qrRow}>
-          <Image src={qrDataUrl} style={{ width: 68, height: 68 }} />
-          <Text style={styles.qrTexto}>
-            Verifique a autenticidade deste certificado em {urlVerificacao}
+          <Text style={[styles.secaoLabel, { marginTop: 16, borderTopWidth: 1, borderTopColor: CORES.line, paddingTop: 12 }]}>
+            Assinatura eletrônica
           </Text>
+          <View style={styles.caixaHash}>
+            <View style={styles.caixaHashConteudo}>
+              <Text style={styles.caixaHashLinha}>Registrado em: {formatDataHora(registro.data_registro)}</Text>
+              <Text style={styles.caixaHashLinha}>
+                Hash do arquivo (SHA-256): <Text style={styles.hashMono}>{registro.hash_sha256}</Text>
+              </Text>
+              <Text style={styles.caixaHashDestaque}>ASSINADO ELETRONICAMENTE E CARIMBADO (RFC 3161)</Text>
+            </View>
+            <View style={styles.verificarBloco}>
+              <Text style={styles.verificarLabel}>Verificar{"\n"}certificado</Text>
+              <Image src={qrDataUrl} style={{ width: 62, height: 62 }} />
+            </View>
+          </View>
+
+          <Text style={styles.explicacao}>
+            Este certificado comprova, por meio de hash SHA-256, carimbo de tempo (padrão RFC
+            3161) e assinatura eletrônica, que a pessoa acima identificada declarou-se autora
+            e/ou titular dos direitos sobre a obra mencionada, na data e hora do registro
+            indicadas, constituindo registro oficial de direitos autorais e elemento de prova de
+            anterioridade e titularidade declarada, utilizável em procedimentos administrativos
+            ou judiciais nos termos da legislação aplicável. Diferente de outras plataformas do
+            gênero, a Revollution Lastro preserva o arquivo original enviado — não apenas o seu
+            hash — permitindo reconferência posterior em caso de disputa. Não constitui
+            aconselhamento jurídico. Quaisquer inconsistências nos dados constantes desta
+            declaração são de exclusiva responsabilidade do declarante.
+          </Text>
+
+          <Text style={styles.conformidadeTitulo}>Conformidade legal</Text>
+          <View>
+            {CONFORMIDADE_LEGAL.map((item, i) => (
+              <Text key={i} style={styles.conformidadeItem}>
+                • {item}
+              </Text>
+            ))}
+          </View>
+
+          <View style={styles.assinaturaBloco}>
+            <View>
+              <Text style={styles.assinaturaTexto}>Documento assinado eletronicamente</Text>
+              <Text style={styles.rodapeTexto}>{formatDataHora(emitidoEm.toISOString())}</Text>
+            </View>
+            <Text style={styles.rodapeTexto}>© Revollution Marcas e Patentes</Text>
+          </View>
         </View>
 
-        <Text style={styles.aviso}>
-          Quaisquer inconsistências nos dados constantes desta declaração são de exclusiva
-          responsabilidade do declarante, nos termos da declaração de autoria firmada no ato do
-          registro.
-        </Text>
-
-        <View style={styles.assinaturaBloco}>
-          <View>
-            <Text style={styles.assinaturaTexto}>Documento assinado eletronicamente</Text>
-            <Text style={styles.rodape}>{formatDataHora(emitidoEm.toISOString())}</Text>
-          </View>
-          <Text style={styles.copyright}>© Revollution Marcas e Patentes</Text>
+        <View style={{ height: 46, marginTop: "auto" }}>
+          <FaixaDecorativa altura={46} espelhada />
         </View>
       </Page>
     </Document>
