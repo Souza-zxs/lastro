@@ -29,53 +29,47 @@ const CORES = {
   line: "#ddd0cb",
 };
 
-const LARGURA = 595.28;
+// Página em paisagem (A4 deitado).
+const LARGURA = 841.89;
 
 const styles = StyleSheet.create({
   page: { fontSize: 9.5, fontFamily: "Helvetica", color: CORES.ink },
-  corpo: { paddingHorizontal: 40, paddingBottom: 30 },
-  logoLinha: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 8 },
-  logoTexto: { fontSize: 22, fontFamily: "Times-Bold", color: CORES.ledger, letterSpacing: 0.5 },
-  subtitulo: { textAlign: "center", fontSize: 8.5, color: CORES.inkMuted, marginTop: 2, letterSpacing: 1, textTransform: "uppercase" },
-  tituloPrincipal: { textAlign: "center", fontSize: 17, fontFamily: "Helvetica-Bold", color: CORES.ink, marginTop: 16, marginBottom: 16 },
+  corpo: { paddingHorizontal: 44, paddingBottom: 16 },
+  logoLinha: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 6 },
+  logoTexto: { fontSize: 19, fontFamily: "Times-Bold", color: CORES.ledger, letterSpacing: 0.5 },
+  subtitulo: { textAlign: "center", fontSize: 8, color: CORES.inkMuted, marginTop: 2, letterSpacing: 1, textTransform: "uppercase" },
+  tituloPrincipal: { textAlign: "center", fontSize: 15, fontFamily: "Helvetica-Bold", color: CORES.ink, marginTop: 8, marginBottom: 12 },
   secaoLabel: { fontSize: 8.5, fontFamily: "Helvetica-Bold", color: CORES.ink, marginBottom: 6 },
-  linha: { fontSize: 10, marginBottom: 3 },
-  linhaMuted: { fontSize: 7, color: CORES.inkMuted, marginBottom: 8 },
-  duasColunas: { flexDirection: "row", justifyContent: "space-between", gap: 20 },
-  colunaEsquerda: { width: "48%" },
-  colunaDireita: { width: "48%" },
-  caixaHash: {
-    marginTop: 10,
-    flexDirection: "row",
-    gap: 12,
-    alignItems: "center",
-  },
+  linha: { fontSize: 9.5, marginBottom: 3 },
+  linhaMuted: { fontSize: 7, color: CORES.inkMuted, marginBottom: 6 },
+  tresColunas: { flexDirection: "row", gap: 22 },
+  colunaTerco: { width: "31.3%" },
   caixaHashConteudo: {
-    flex: 1,
     borderWidth: 1,
     borderColor: CORES.seal,
     borderRadius: 4,
-    padding: 12,
+    padding: 10,
     backgroundColor: CORES.sealLight,
   },
-  caixaHashLinha: { fontSize: 8.5, color: CORES.ink, marginBottom: 5 },
-  caixaHashDestaque: { textAlign: "center", fontSize: 8.5, fontFamily: "Helvetica-Bold", color: CORES.ledger, marginTop: 4 },
-  hashMono: { fontFamily: "Courier", fontSize: 7.5 },
-  verificarBloco: { width: 90, alignItems: "center" },
-  verificarLabel: { fontSize: 7, fontFamily: "Helvetica-Bold", color: CORES.ledger, textAlign: "center", marginBottom: 4 },
-  conformidadeTitulo: { fontSize: 8, color: CORES.ledger, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 14, marginBottom: 4 },
-  conformidadeItem: { fontSize: 7.5, color: CORES.inkMuted, marginBottom: 2 },
-  explicacao: { fontSize: 7.5, color: CORES.inkMuted, lineHeight: 1.4, marginTop: 8 },
+  caixaHashLinha: { fontSize: 8, color: CORES.ink, marginBottom: 4 },
+  caixaHashDestaque: { textAlign: "center", fontSize: 7.5, fontFamily: "Helvetica-Bold", color: CORES.ledger, marginTop: 3 },
+  hashMono: { fontFamily: "Courier", fontSize: 6.8 },
+  verificarLinha: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
+  verificarLabel: { fontSize: 7, fontFamily: "Helvetica-Bold", color: CORES.ledger },
+  conformidadeTitulo: { fontSize: 8, color: CORES.ledger, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 12, marginBottom: 4 },
+  conformidadeColunas: { flexDirection: "row", gap: 22 },
+  conformidadeItem: { fontSize: 7.3, color: CORES.inkMuted, marginBottom: 2 },
+  explicacao: { fontSize: 7.3, color: CORES.inkMuted, lineHeight: 1.35, marginTop: 8 },
   assinaturaBloco: {
-    marginTop: 12,
+    marginTop: 10,
     borderTopWidth: 1,
     borderTopColor: CORES.line,
-    paddingTop: 8,
+    paddingTop: 6,
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  assinaturaTexto: { fontSize: 7.5, color: CORES.ledger },
-  rodapeTexto: { fontSize: 7.5, color: CORES.inkMuted },
+  assinaturaTexto: { fontSize: 7.3, color: CORES.ledger },
+  rodapeTexto: { fontSize: 7.3, color: CORES.inkMuted },
 });
 
 const CONFORMIDADE_LEGAL = [
@@ -95,6 +89,13 @@ function carregarLogo(): Buffer {
 
 async function gerarQrCodeDataUrl(url: string): Promise<string> {
   return toDataURL(url, { margin: 0, width: 200, color: { dark: CORES.ledger } });
+}
+
+/** Insere espaços a cada 8 caracteres para o hash poder quebrar linha
+ * dentro da caixa — sem isso, react-pdf trata o hash como uma única
+ * "palavra" indivisível e deixa o texto vazar pra fora da borda. */
+function formatarHashParaExibicao(hash: string): string {
+  return hash.match(/.{1,8}/g)?.join(" ") ?? hash;
 }
 
 /** Faixa decorativa angular (topo ou rodapé, espelhada) — mesmo espírito do
@@ -121,7 +122,7 @@ export async function gerarPdfCertificado(registro: Registro, urlVerificacao: st
 
   const documento = (
     <Document title={`Certificado — ${registro.titulo}`} author="Revollution Lastro">
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" orientation="landscape" style={styles.page}>
         <View style={{ height: 96 }}>
           <FaixaDecorativa altura={96} espelhada={false} />
           <View style={{ position: "absolute", top: 0, right: 46, width: 34, height: 78 }}>
@@ -145,41 +146,35 @@ export async function gerarPdfCertificado(registro: Registro, urlVerificacao: st
 
           <Text style={styles.tituloPrincipal}>Certificado de Anterioridade</Text>
 
-          <View style={styles.duasColunas}>
-            <View style={styles.colunaEsquerda}>
+          <View style={styles.tresColunas}>
+            <View style={styles.colunaTerco}>
               <Text style={styles.secaoLabel}>Registrado por</Text>
               <Text style={styles.linha}>Titular: {registro.autor}</Text>
               {registro.autor_documento && <Text style={styles.linha}>Documento: {registro.autor_documento}</Text>}
               <Text style={styles.linhaMuted}>(CPF, CNPJ, etc.)</Text>
               {registro.autor_endereco && (
-                <>
-                  <Text style={[styles.linha, { marginTop: 4 }]}>Endereço: {registro.autor_endereco}</Text>
-                </>
+                <Text style={[styles.linha, { marginTop: 4 }]}>Endereço: {registro.autor_endereco}</Text>
               )}
             </View>
-            <View style={styles.colunaDireita}>
+            <View style={styles.colunaTerco}>
               <Text style={styles.secaoLabel}>Registro</Text>
               {registro.arquivo_original_nome && <Text style={styles.linha}>Arquivo: {registro.arquivo_original_nome}</Text>}
               <Text style={styles.linha}>Título: {registro.titulo}</Text>
               <Text style={styles.linha}>Categoria: {registro.categoria}</Text>
               <Text style={[styles.linha, { marginTop: 4 }]}>Código: {registro.codigo_verificacao}</Text>
             </View>
-          </View>
-
-          <Text style={[styles.secaoLabel, { marginTop: 16, borderTopWidth: 1, borderTopColor: CORES.line, paddingTop: 12 }]}>
-            Assinatura eletrônica
-          </Text>
-          <View style={styles.caixaHash}>
-            <View style={styles.caixaHashConteudo}>
-              <Text style={styles.caixaHashLinha}>Registrado em: {formatDataHora(registro.data_registro)}</Text>
-              <Text style={styles.caixaHashLinha}>
-                Hash do arquivo (SHA-256): <Text style={styles.hashMono}>{registro.hash_sha256}</Text>
-              </Text>
-              <Text style={styles.caixaHashDestaque}>ASSINADO ELETRONICAMENTE E CARIMBADO (RFC 3161)</Text>
-            </View>
-            <View style={styles.verificarBloco}>
-              <Text style={styles.verificarLabel}>Verificar{"\n"}certificado</Text>
-              <Image src={qrDataUrl} style={{ width: 62, height: 62 }} />
+            <View style={styles.colunaTerco}>
+              <Text style={styles.secaoLabel}>Assinatura eletrônica</Text>
+              <View style={styles.caixaHashConteudo}>
+                <Text style={styles.caixaHashLinha}>Registrado em: {formatDataHora(registro.data_registro)}</Text>
+                <Text style={styles.caixaHashLinha}>Hash do arquivo (SHA-256):</Text>
+                <Text style={[styles.hashMono, { marginBottom: 4 }]}>{formatarHashParaExibicao(registro.hash_sha256)}</Text>
+                <Text style={styles.caixaHashDestaque}>ASSINADO ELETRONICAMENTE E CARIMBADO (RFC 3161)</Text>
+              </View>
+              <View style={styles.verificarLinha}>
+                <Image src={qrDataUrl} style={{ width: 48, height: 48 }} />
+                <Text style={styles.verificarLabel}>Verificar{"\n"}certificado</Text>
+              </View>
             </View>
           </View>
 
@@ -197,12 +192,21 @@ export async function gerarPdfCertificado(registro: Registro, urlVerificacao: st
           </Text>
 
           <Text style={styles.conformidadeTitulo}>Conformidade legal</Text>
-          <View>
-            {CONFORMIDADE_LEGAL.map((item, i) => (
-              <Text key={i} style={styles.conformidadeItem}>
-                • {item}
-              </Text>
-            ))}
+          <View style={styles.conformidadeColunas}>
+            <View style={{ flex: 1 }}>
+              {CONFORMIDADE_LEGAL.slice(0, 2).map((item, i) => (
+                <Text key={i} style={styles.conformidadeItem}>
+                  • {item}
+                </Text>
+              ))}
+            </View>
+            <View style={{ flex: 1 }}>
+              {CONFORMIDADE_LEGAL.slice(2).map((item, i) => (
+                <Text key={i} style={styles.conformidadeItem}>
+                  • {item}
+                </Text>
+              ))}
+            </View>
           </View>
 
           <View style={styles.assinaturaBloco}>
