@@ -11,7 +11,9 @@ export interface PrecoPorCiclo {
 export interface Plano {
   id: string;
   nome: string;
+  /** Só pra exibição — quem realmente concede o crédito é `planos.creditos_por_mes` no banco (ativar_plano_usuario). Manter os dois em sync ao mudar um plano. */
   creditosPorMes: number;
+  /** Idem: fonte de verdade é `planos.processos_inpi_inclusos` (usado por criar_processo_inpi). */
   processosInpiInclusos: number;
   destaque: boolean;
   beneficios: string[];
