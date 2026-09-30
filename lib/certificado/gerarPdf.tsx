@@ -70,7 +70,11 @@ const styles = StyleSheet.create({
   },
   assinaturaTexto: { fontSize: 7.3, color: CORES.ledger },
   rodapeTexto: { fontSize: 7.3, color: CORES.inkMuted },
+  instagramBloco: { flexDirection: "row", alignItems: "center", gap: 6 },
+  instagramTexto: { fontSize: 7, color: CORES.inkMuted },
 });
+
+const INSTAGRAM_URL = "https://www.instagram.com/revollutionideasbrand/";
 
 const CONFORMIDADE_LEGAL = [
   "Lei nº 9.610/1998 (Lei de Direitos Autorais), art. 18 — a proteção autoral independe de registro.",
@@ -118,6 +122,7 @@ function FaixaDecorativa({ altura, espelhada = false }: { altura: number; espelh
 
 export async function gerarPdfCertificado(registro: Registro, urlVerificacao: string): Promise<Buffer> {
   const qrDataUrl = await gerarQrCodeDataUrl(urlVerificacao);
+  const instagramQrDataUrl = await gerarQrCodeDataUrl(INSTAGRAM_URL);
   const emitidoEm = new Date();
 
   const documento = (
@@ -213,6 +218,10 @@ export async function gerarPdfCertificado(registro: Registro, urlVerificacao: st
             <View>
               <Text style={styles.assinaturaTexto}>Documento assinado eletronicamente</Text>
               <Text style={styles.rodapeTexto}>{formatDataHora(emitidoEm.toISOString())}</Text>
+            </View>
+            <View style={styles.instagramBloco}>
+              <Image src={instagramQrDataUrl} style={{ width: 30, height: 30 }} />
+              <Text style={styles.instagramTexto}>Siga a Revollution{"\n"}@revollutionideasbrand</Text>
             </View>
             <Text style={styles.rodapeTexto}>© Revollution Marcas e Patentes</Text>
           </View>
