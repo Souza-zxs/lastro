@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, FileText, Hash, Calendar, HardDrive, Ruler } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
+import { ExcluirRegistroButton } from "@/components/ExcluirRegistroButton";
 import { buttonVariants } from "@/components/ui/button";
 import { formatDataHora, formatBytes, truncateHash } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -87,6 +88,7 @@ export default async function RegistroDetalhePage({
             >
               Abrir página de verificação
             </Link>
+            <ExcluirRegistroButton registroId={registro.id} titulo={registro.titulo} />
           </div>
         </div>
       </div>
