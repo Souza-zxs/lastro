@@ -5,43 +5,42 @@ import { formatDataHora } from "@/lib/format";
 import type { Registro } from "@/lib/types";
 
 const styles = StyleSheet.create({
-  page: { padding: 48, fontSize: 11, fontFamily: "Helvetica", color: "#1a1a1a" },
-  eyebrow: { fontSize: 9, color: "#8a1538", marginBottom: 4, textTransform: "uppercase", letterSpacing: 2 },
-  titulo: { fontSize: 22, marginBottom: 4 },
-  subtitulo: { fontSize: 10, color: "#666", marginBottom: 24, borderBottomWidth: 1, borderBottomColor: "#ddd", paddingBottom: 16 },
+  page: { padding: 36, fontSize: 11, fontFamily: "Helvetica", color: "#1a1a1a" },
+  eyebrow: { fontSize: 9, color: "#8a1538", marginBottom: 3, textTransform: "uppercase", letterSpacing: 2 },
+  titulo: { fontSize: 20, marginBottom: 3 },
+  subtitulo: { fontSize: 9, color: "#666", marginBottom: 14, borderBottomWidth: 1, borderBottomColor: "#ddd", paddingBottom: 10 },
   grid: { flexDirection: "row", flexWrap: "wrap" },
-  campo: { width: "50%", marginBottom: 14 },
-  campoLargo: { width: "100%", marginBottom: 14 },
-  label: { fontSize: 8, color: "#666", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 3 },
-  valor: { fontSize: 11 },
-  hashLabel: { fontSize: 8, color: "#666", textTransform: "uppercase", letterSpacing: 0.5, marginTop: 10, marginBottom: 3 },
-  hash: { fontSize: 9, fontFamily: "Courier" },
+  campo: { width: "50%", marginBottom: 9 },
+  campoLargo: { width: "100%", marginBottom: 9 },
+  label: { fontSize: 7.5, color: "#666", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 },
+  valor: { fontSize: 10.5 },
+  hashLabel: { fontSize: 7.5, color: "#666", textTransform: "uppercase", letterSpacing: 0.5, marginTop: 4, marginBottom: 2 },
+  hash: { fontSize: 8.5, fontFamily: "Courier" },
   explicacao: {
-    marginTop: 16,
-    fontSize: 9,
+    marginTop: 10,
+    fontSize: 8.5,
     color: "#444",
-    lineHeight: 1.5,
+    lineHeight: 1.4,
     borderTopWidth: 1,
     borderTopColor: "#ddd",
-    paddingTop: 14,
+    paddingTop: 9,
   },
-  conformidadeTitulo: { fontSize: 9, color: "#8a1538", textTransform: "uppercase", letterSpacing: 0.5, marginTop: 14, marginBottom: 6 },
-  conformidadeItem: { fontSize: 9, color: "#444", marginBottom: 3 },
-  qrRow: { flexDirection: "row", alignItems: "center", marginTop: 16, gap: 14, borderTopWidth: 1, borderTopColor: "#ddd", paddingTop: 16 },
-  qrTexto: { fontSize: 8, color: "#666", maxWidth: 340, lineHeight: 1.4 },
-  avisoTitulo: { fontSize: 8, color: "#8a1538", textTransform: "uppercase", letterSpacing: 0.5, marginTop: 16, marginBottom: 4 },
-  aviso: { fontSize: 8, color: "#666", lineHeight: 1.5, marginBottom: 6 },
-  rodape: { marginTop: 12, fontSize: 8, color: "#666", lineHeight: 1.5 },
+  conformidadeTitulo: { fontSize: 8.5, color: "#8a1538", textTransform: "uppercase", letterSpacing: 0.5, marginTop: 9, marginBottom: 4 },
+  conformidadeItem: { fontSize: 8.5, color: "#444", marginBottom: 2 },
+  qrRow: { flexDirection: "row", alignItems: "center", marginTop: 10, gap: 12, borderTopWidth: 1, borderTopColor: "#ddd", paddingTop: 10 },
+  qrTexto: { fontSize: 7.5, color: "#666", maxWidth: 360, lineHeight: 1.3 },
+  aviso: { fontSize: 7.5, color: "#666", lineHeight: 1.4, marginTop: 8 },
   assinaturaBloco: {
-    marginTop: 18,
+    marginTop: 10,
     borderTopWidth: 1,
     borderTopColor: "#ddd",
-    paddingTop: 10,
+    paddingTop: 8,
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  assinaturaTexto: { fontSize: 8, color: "#8a1538" },
-  copyright: { fontSize: 8, color: "#999" },
+  assinaturaTexto: { fontSize: 7.5, color: "#8a1538" },
+  rodape: { fontSize: 7.5, color: "#666" },
+  copyright: { fontSize: 7.5, color: "#999" },
 });
 
 const CONFORMIDADE_LEGAL = [
@@ -113,10 +112,13 @@ export async function gerarPdfCertificado(registro: Registro, urlVerificacao: st
         <Text style={styles.explicacao}>
           Este certificado comprova, por meio de hash SHA-256, carimbo de tempo (padrão RFC
           3161) e assinatura eletrônica, que a pessoa acima identificada declarou-se autora
-          e/ou titular dos direitos sobre a obra mencionada neste documento, na data e hora do
-          registro indicadas. Diferente de outras plataformas do gênero, a Revollution Lastro
-          preserva o arquivo original enviado — não apenas o seu hash — permitindo reconferência
-          posterior em caso de disputa.
+          e/ou titular dos direitos sobre a obra mencionada, na data e hora do registro
+          indicadas, constituindo registro oficial de direitos autorais e elemento de prova de
+          anterioridade e titularidade declarada, utilizável em procedimentos administrativos
+          ou judiciais nos termos da legislação aplicável. Diferente de outras plataformas do
+          gênero, a Revollution Lastro preserva o arquivo original enviado — não apenas o seu
+          hash — permitindo reconferência posterior em caso de disputa. Não constitui
+          aconselhamento jurídico.
         </Text>
 
         <Text style={styles.conformidadeTitulo}>Conformidade legal</Text>
@@ -129,25 +131,16 @@ export async function gerarPdfCertificado(registro: Registro, urlVerificacao: st
         </View>
 
         <View style={styles.qrRow}>
-          <Image src={qrDataUrl} style={{ width: 84, height: 84 }} />
+          <Image src={qrDataUrl} style={{ width: 68, height: 68 }} />
           <Text style={styles.qrTexto}>
             Verifique a autenticidade deste certificado em {urlVerificacao}
           </Text>
         </View>
 
-        <Text style={styles.avisoTitulo}>Avisos</Text>
         <Text style={styles.aviso}>
           Quaisquer inconsistências nos dados constantes desta declaração são de exclusiva
           responsabilidade do declarante, nos termos da declaração de autoria firmada no ato do
           registro.
-        </Text>
-        <Text style={styles.aviso}>
-          A proteção autoral é assegurada pela Lei nº 9.610/1998, independentemente de registro,
-          conforme dispõe o art. 18. Esta certificação registra o conteúdo apresentado, a
-          identificação do titular e a data de submissão, constituindo elemento de prova de
-          anterioridade e de titularidade declarada, podendo ser utilizada como meio de prova em
-          procedimentos administrativos ou judiciais, nos termos da legislação aplicável, e
-          constitui registro oficial de direitos autorais. Não constitui aconselhamento jurídico.
         </Text>
 
         <View style={styles.assinaturaBloco}>
